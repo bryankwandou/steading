@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steading</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { color-scheme: light dark; --bg:#fff; --ink:#0d1526; --soft:#55637a; --accent:#1558c8 }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b1220; --ink:#e9eefb; --soft:#a7b7cf; --accent:#5b9dff }
+  }
+  body { margin:0; min-height:100dvh; display:grid; place-items:center; background:var(--bg);
+         color:var(--ink); padding:28px; text-align:center;
+         font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }
+  h1 { font-size:21px; font-weight:640; letter-spacing:-.02em; margin:0 0 10px }
+  p { margin:0 0 8px; max-width:46ch }
+  .muted { color:var(--soft); font-size:14px }
+  a { color:var(--accent) }
+  [hidden] { display:none !important }
+</style>
+</head>
+<body data-target="">
+<main>
+  <section id="waiting" hidden>
+    <h1>Membuka Steading&hellip;</h1>
+    <p>Opening Steading&hellip;</p>
+    <p class="muted">Kalau halaman ini tidak berpindah sendiri, <a id="go" href="/">ketuk di sini</a>.<br>
+    If this page does not move by itself, <a href="/">tap here</a>.</p>
+  </section>
+
+  <section id="dead">
+    <h1>Sesi ini sedang tidak dibuka</h1>
+    <p>This session is not open right now.</p>
+    <p class="muted">Steading berjalan di komputer penyaji, dan komputer itu sedang tidak menjalankannya.<br>
+    Steading runs on the presenter&rsquo;s computer, and that computer is not running it at the moment.</p>
+    <p class="muted"><a href="/">Kembali ke halaman utama</a> &middot; <a href="/">Back to the main page</a></p>
+  </section>
+</main>
+<script type="module" src="/js/live.js"></script>
+</body>
+</html>

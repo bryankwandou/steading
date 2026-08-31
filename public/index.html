@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading — keep your own copy</title>
+<meta name="description" content="Steading saves video, audio and photos from the web onto your own machine. No account, no upload, no server holding your files.">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Steading">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+
+<!-- The bar spans the window; only its contents are held to a readable width. A header
+     that narrows along with the text column reads as app chrome rather than as a site. -->
+<header class="head">
+  <div class="head-inner">
+    <div class="brand">
+      <!-- Three vessels on a shelf. Deliberately not a download arrow: the arrow says
+           "a file moved", which every downloader says, and says nothing about the one
+           thing that makes this different -- that the shelf is yours. The shapes still
+           read at 16px once the lid lines drop out. -->
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 19.5h17"/>
+        <path d="M5.6 19.5v-6.2a1.3 1.3 0 0 1 1.3-1.3h1.6a1.3 1.3 0 0 1 1.3 1.3v6.2"/>
+        <path d="M5.6 14.1h4.2"/>
+        <path d="M11.9 19.5V8.2a1.3 1.3 0 0 1 1.3-1.3h1.5a1.3 1.3 0 0 1 1.3 1.3v11.3"/>
+        <path d="M11.9 9.9h4.1"/>
+        <path d="M18.1 19.5v-3.8a1.2 1.2 0 0 1 1.2-1.2h.9"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Steading</span>
+        <span class="tagline">Your own copy, on your own machine.</span>
+      </span>
+    </div>
+    <div class="head-actions">
+      <div class="lang">
+        <svg class="lang-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5"/>
+          <path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.2 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.2-3.3-8.5S9.8 5.8 12 3.5Z"/>
+        </svg>
+        <select id="lang" data-i18n-attr="aria-label:nav.language"></select>
+        <svg class="lang-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10.5 4 4 4-4"/></svg>
+      </div>
+      <button type="button" id="theme" class="btn-icon theme-btn" data-i18n-attr="aria-label:nav.theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ==================================================================== hero -->
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1 class="hero-h1">Keep your own copy.</h1>
+      <p class="hero-lede">
+        Steading pulls video, audio and photos off the web and puts them in a folder you
+        control. It runs on your computer, so the file is never on anyone else's.
+      </p>
+
+      <!-- Shown only while a session is actually running. For someone who cannot open a
+           downloaded file -- which is most of the people this was built for -- it is the
+           only route that ends anywhere, so when it exists it goes first. -->
+      <div class="hero-get is-live" id="get-live" hidden>
+        <div class="hero-actions">
+          <a class="btn btn-primary hero-cta" id="live-cta" href="/live" data-i18n="live.cta"></a>
+        </div>
+        <p class="hero-note" data-i18n="live.note"></p>
+      </div>
+
+      <div class="hero-get" id="get-install">
+        <div class="hero-actions">
+          <a class="btn btn-primary hero-cta" id="get-app" href="/Steading.cmd" download></a>
+          <a class="btn btn-quiet" href="#install">Other systems</a>
+        </div>
+        <p class="hero-note" id="get-note" data-i18n="landing.getNote"></p>
+        <p class="hero-paste" data-i18n="live.paste"></p>
+      </div>
+
+      <!-- Shown instead of the above once the app answers on this machine. Someone who
+           has already installed it should be sent there, not sold the installer again. -->
+      <div class="hero-get is-live" id="get-open" hidden>
+        <p class="local-found" data-i18n="local.found"></p>
+        <div class="hero-actions">
+          <a class="btn btn-primary hero-cta" id="open-local" href="http://127.0.0.1:3000/"></a>
+        </div>
+        <p class="hero-note" data-i18n="local.openNote"></p>
+      </div>
+
+      <dl class="hero-facts">
+        <div class="hero-fact">
+          <dt>1,752</dt>
+          <dd>sites reachable<br>in universal mode</dd>
+        </div>
+        <div class="hero-fact">
+          <dt>11</dt>
+          <dd>formats across video,<br>audio and photo</dd>
+        </div>
+        <div class="hero-fact">
+          <dt>24</dt>
+          <dd>languages,<br>right-to-left included</dd>
+        </div>
+        <div class="hero-fact">
+          <dt>0</dt>
+          <dd>bytes sent<br>to anyone else</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- The visual is the product's own argument rather than stock art: the three things
+         it hands back, sitting on a shelf. Marked aria-hidden because it is decoration --
+         everything it says is said in words in the column beside it. -->
+    <div class="scene" aria-hidden="true">
+      <div class="stage">
+        <div class="shelf"></div>
+
+        <div class="card3d card-video">
+          <span class="card3d-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 11 5-3v8l-5-3z"/></svg>
+            clip.mp4
+          </span>
+          <span class="card3d-sub">1080p · 24.6 MB</span>
+          <span class="strip"><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <div class="card3d card-audio">
+          <span class="card3d-title">
+            <svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+            track.flac
+          </span>
+          <span class="card3d-sub">lossless · 44.1 kHz</span>
+          <span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <div class="card3d card-photo">
+          <span class="card3d-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.8"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+            post.pdf
+          </span>
+          <span class="card3d-sub">14 photos · one file</span>
+          <span class="strip"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== live demo -->
+
+<main class="app">
+
+  <div id="demo-area" hidden>
+    <section class="try">
+      <p class="try-note" data-i18n="landing.tryNote"></p>
+    </section>
+
+  <!-- What this deployment is. Stated up front rather than buried, because the page
+       cannot do the one thing its name promises and should not pretend otherwise. -->
+  <section class="mode-bar" id="mode-bar" aria-live="polite">
+    <span class="mode-chip" id="mode-chip"></span>
+    <p class="mode-note" id="mode-note"></p>
+    <div class="mode-actions">
+      <button type="button" id="mode-switch" class="btn-link mode-switch"></button>
+    </div>
+  </section>
+
+  <form id="url-form" class="field" autocomplete="off" novalidate>
+    <label class="label" for="url" data-i18n="url.label"></label>
+    <div class="input-row">
+      <input id="url" name="url" type="url" inputmode="url" spellcheck="false"
+             aria-describedby="url-hint"
+             data-i18n-attr="placeholder:url.placeholder">
+      <button type="button" id="paste" class="btn-icon"
+              data-i18n-attr="aria-label:url.paste, title:url.paste">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="8" y="3.5" width="8" height="3.5" rx="1.2"/>
+          <path d="M8 5.2H6.4A1.4 1.4 0 0 0 5 6.6v12.6a1.4 1.4 0 0 0 1.4 1.4h11.2a1.4 1.4 0 0 0 1.4-1.4V6.6a1.4 1.4 0 0 0-1.4-1.4H16"/>
+        </svg>
+      </button>
+    </div>
+    <p id="supports" class="supports"></p>
+    <p id="url-hint" class="hint" data-i18n="url.hint"></p>
+    <button type="submit" id="fetch" class="btn btn-primary" data-i18n="action.check"></button>
+  </form>
+
+  <section id="preview" class="card" hidden aria-live="polite">
+    <div class="media">
+      <div class="thumb is-empty" id="thumb-wrap">
+        <img id="thumb" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      </div>
+      <div class="meta">
+        <h2 id="title" class="title"></h2>
+        <p id="submeta" class="submeta"></p>
+        <p id="sample-note" class="sample-note" hidden data-i18n="demo.sampleNote"></p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="seg" id="seg" data-active="mp4" role="radiogroup"
+           data-i18n-attr="aria-label:format.label">
+        <span class="seg-thumb" aria-hidden="true"></span>
+        <button type="button" class="seg-btn is-on" data-format="mp4" role="radio"
+                aria-checked="true" data-i18n="format.mp4"></button>
+        <button type="button" class="seg-btn" data-format="mp3" role="radio"
+                aria-checked="false" data-i18n="format.mp3"></button>
+      </div>
+
+      <label class="quality" id="quality-wrap">
+        <span class="label" data-i18n="quality.label"></span>
+        <select id="quality"></select>
+      </label>
+    </div>
+
+    <button type="button" id="download" class="btn btn-primary" data-i18n="action.download"></button>
+  </section>
+
+  <section id="progress" class="card" hidden aria-live="polite">
+    <div class="prog-head">
+      <span id="phase" class="phase"></span>
+      <span id="percent" class="percent">&mdash;</span>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="phase">
+      <div id="bar-fill" class="bar-fill is-indeterminate"></div>
+    </div>
+    <div class="prog-foot">
+      <span id="stats" class="stats"></span>
+      <button type="button" id="cancel" class="btn-link" data-i18n="action.cancel"></button>
+    </div>
+  </section>
+
+  <p id="message" class="message" hidden role="status"></p>
+  </div>
+
+</main>
+
+<!-- ================================================================ reasons -->
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow rise">Why it runs on your machine</p>
+    <h2 class="section-title rise">The file is never somewhere else first.</h2>
+    <p class="section-lede rise">
+      Most download sites work by fetching the file onto their server, then handing you a
+      copy. That server sees the link, the file, and you. Steading removes the middle step
+      by removing the middle party.
+    </p>
+
+    <div class="reasons">
+      <article class="reason rise" data-i="1">
+        <span class="reason-num">01</span>
+        <h3>Nothing is uploaded</h3>
+        <p>
+          The file is written straight to your disk by a program running on your own
+          computer. There is no moment when a stranger's server is holding it, because no
+          stranger's server is involved.
+        </p>
+      </article>
+
+      <article class="reason rise" data-i="2">
+        <span class="reason-num">02</span>
+        <h3>No account, no queue</h3>
+        <p>
+          Nothing to sign into and nobody ahead of you. There is no rate limit to hit and
+          no plan to upgrade, because there is no service on the other end deciding how
+          much you get.
+        </p>
+      </article>
+
+      <article class="reason rise" data-i="3">
+        <span class="reason-num">03</span>
+        <h3>It keeps working</h3>
+        <p>
+          What you saved is an ordinary file in an ordinary folder. It will still open
+          when this page is gone, when this project is abandoned, and when whoever posted
+          it has deleted the original.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ install -->
+
+<section class="section" id="install">
+  <div class="wrap">
+    <p class="eyebrow rise">Install</p>
+    <h2 class="section-title rise">One command, then it is yours.</h2>
+    <p class="section-lede rise">
+      Steading needs Node, yt-dlp and ffmpeg. The setup script installs whatever is missing
+      and adds nothing to your PATH. It runs only while you have it running.
+    </p>
+
+    <div class="platforms">
+      <article class="platform rise" data-i="1">
+        <h3>Windows</h3>
+        <p>PowerShell, run once.</p>
+        <code>scripts\setup-windows.ps1</code>
+      </article>
+      <article class="platform rise" data-i="2">
+        <h3>macOS and Linux</h3>
+        <p>Homebrew, apt, dnf or pacman — detected for you.</p>
+        <code>bash scripts/setup-unix.sh</code>
+      </article>
+      <article class="platform rise" data-i="3">
+        <h3>Android</h3>
+        <p>Inside Termux. No root, no laptop needed.</p>
+        <code>bash scripts/setup-termux.sh</code>
+      </article>
+      <article class="platform rise" data-i="3">
+        <h3>No computer at all</h3>
+        <p>Someone runs it once and shares the link; your phone just opens it.</p>
+        <code>npm run share</code>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================= limits -->
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow rise">Honest limits</p>
+    <h2 class="section-title rise">What it will not do.</h2>
+    <p class="section-lede rise">
+      Worth reading before you install it, rather than after.
+    </p>
+
+    <ul class="limits">
+      <li class="limit rise">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
+        <span>
+          <strong>This page cannot download anything.</strong> The sites block hosting
+          providers by IP, so a server in a data centre gets refused where your own
+          connection is not. The demo above runs against a sample file. The real work only
+          happens on your machine.
+        </span>
+      </li>
+      <li class="limit rise">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
+        <span>
+          <strong>Sites change without warning.</strong> Twenty-two are checked by hand
+          and three were dropped because they genuinely stopped working. The rest of the
+          1,752 are reachable but unverified, and any of them can break the week after
+          you read this.
+        </span>
+      </li>
+      <li class="limit rise">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
+        <span>
+          <strong>It does not sign in as you.</strong> Private, paid and age-restricted
+          material stays out of reach, and that is a decision rather than a gap. Steading
+          never asks for an account on someone else's service.
+        </span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer class="foot">
+  <span id="server-status" class="dot"></span>
+  <span id="server-text" class="foot-text"></span>
+</footer>
+
+<script type="module" src="/js/app.js"></script>
+<script type="module" src="/js/landing.js"></script>
+</body>
+</html>

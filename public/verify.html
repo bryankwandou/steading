@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading</title>
+<meta name="description" content="Fast. Seamless. 100% Local.">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="head">
+  <div class="head-inner">
+  <a class="brand brand-link" href="/">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3.5v11.5m0 0 4.2-4.2M12 15l-4.2-4.2"/>
+      <path d="M4.5 17.5v1.2a1.8 1.8 0 0 0 1.8 1.8h11.4a1.8 1.8 0 0 0 1.8-1.8v-1.2"/>
+    </svg>
+    <span class="brand-text">
+      <span class="brand-name">Steading</span>
+      <span class="tagline">Fast. Seamless. 100% Local.</span>
+    </span>
+  </a>
+  <div class="head-actions">
+    <div class="v-langs" role="group">
+      <button type="button" class="v-lang is-on" data-show="id">ID</button>
+      <button type="button" class="v-lang" data-show="en">EN</button>
+    </div>
+    <button type="button" id="theme" class="btn-icon theme-btn" aria-label="Theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+      </svg>
+    </button>
+  </div>
+  </div>
+</header>
+
+<main class="app v-page">
+  <div data-lang="id">
+    <h1 class="v-title">Verifikasi</h1>
+    <p class="v-lead">Halaman ini mencatat apa yang diterbitkan di alamat ini dan bagaimana memeriksanya sendiri. Setiap angka di bawah dibaca dari berkas yang benar-benar dilayani, bukan diketik tangan.</p>
+    <p class="v-stamp">Dibuat otomatis saat build · <code>2026-08-31 03:12 UTC</code></p>
+    
+  <section class="v-block">
+    <h2>Periksa sendiri</h2>
+    <p>Unduh arsipnya, hitung sidik jarinya, lalu cocokkan dengan tabel di bawah. Kalau cocok, berkas yang Anda pegang identik dengan yang dijelaskan di sini.</p>
+    <pre><code>curl -fsSL https://getsteading.vercel.app/steading.zip -o steading.zip
+
+# Windows
+certutil -hashfile steading.zip SHA256
+
+# macOS, Linux, Termux
+shasum -a 256 steading.zip</code></pre>
+  </section>
+
+  <section class="v-block">
+    <h2>Sidik jari berkas</h2>
+    <p>SHA-256. Kolom ukuran dalam byte.</p>
+    <div class="v-scroll">
+      <table class="v-table">
+        <thead><tr><th>Berkas</th><th>Isi</th><th class="num">Byte</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><code>steading.zip</code></td>
+          <td>the application</td>
+          <td class="num">135,217</td>
+        </tr>
+        <tr class="digest-row">
+          <td colspan="3"><code class="digest">67841f461592056cfcfacf4be0be8607aa8f009206eae85f4feebf0e0b1e1ead</code></td>
+        </tr>
+        <tr>
+          <td><code>install.ps1</code></td>
+          <td>Windows setup script</td>
+          <td class="num">4,715</td>
+        </tr>
+        <tr class="digest-row">
+          <td colspan="3"><code class="digest">5f5cc0a1e02074768318e55bda4179828679ea5ef3c6d0692081de6dc0160b68</code></td>
+        </tr>
+        <tr>
+          <td><code>install.sh</code></td>
+          <td>macOS, Linux and Termux setup script</td>
+          <td class="num">4,154</td>
+        </tr>
+        <tr class="digest-row">
+          <td colspan="3"><code class="digest">6e0f1e55ab92950c0b759272daa8cbb00393e9c19e79b46ffadf8578731d2429</code></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="v-block">
+    <h2>Lingkungan saat dibangun</h2>
+    <p>Versi alat yang dipakai mesin pembangun. Mesin Anda boleh berbeda; angka ini ada supaya perbedaan bisa dijelaskan, bukan ditebak.</p>
+    <dl class="v-facts">
+      <dt>Node</dt><dd><code>v24.13.0</code></dd>
+      <dt>Platform</dt><dd><code>win32 x64</code></dd>
+      <dt>yt-dlp</dt><dd><code>2026.08.19</code></dd>
+      <dt>ffmpeg</dt><dd><code>8.1.2-full_build-www.gyan.dev</code></dd>
+    </dl>
+  </section>
+
+  <section class="v-block">
+    <h2>Ukuran yang bisa diperiksa</h2>
+    <ul class="v-counts">
+      <li><strong>60</strong> berkas</li>
+      <li><strong>7,297</strong> baris</li>
+      <li><strong>0</strong> dependensi npm</li>
+    </ul>
+    <p>Cukup kecil untuk dibaca seluruhnya. Tidak ada build step dan tidak ada paket pihak ketiga yang perlu dipercaya.</p>
+  </section>
+
+  <section class="v-block">
+    <h2>Mereproduksi</h2>
+    <p>Pasang, jalankan, lalu jalankan pengujiannya. Semuanya di mesin Anda sendiri.</p>
+    <pre><code># 1. Install and start it
+#    Windows
+powershell -c &quot;irm https://getsteading.vercel.app/install.ps1 | iex&quot;
+#    macOS, Linux, Termux
+curl -fsSL https://getsteading.vercel.app/install.sh | sh
+
+# 2. Run its tests, from the folder it installed into
+cd ~/Steading/steading
+npm test</code></pre>
+  </section>
+
+  <section class="v-block">
+    <h2>Yang dibuktikan halaman ini</h2>
+    <ul class="v-list is-yes">
+      <li>Arsip yang Anda unduh identik byte-per-byte dengan yang dijelaskan di sini.</li>
+      <li>Aplikasinya berjalan di mesin Anda sendiri, tanpa akun dan tanpa layanan kami di tengah.</li>
+      <li>Pengujiannya lulus di mesin Anda, bukan hanya di mesin pembuatnya.</li>
+    </ul>
+  </section>
+
+  <section class="v-block">
+    <h2>Yang TIDAK dibuktikan halaman ini</h2>
+    <ul class="v-list is-no">
+      <li>Halaman utama alamat ini adalah peraga. Mode demo tidak mengunduh video sungguhan, dan mode langsung hanya mengambil metadata. Unduhan sungguhan hanya terjadi di salinan yang berjalan di mesin Anda.</li>
+      <li>Tidak ada yang bisa dibuktikan di sini tentang siapa yang menulis kode ini atau kapan, di luar yang bisa Anda periksa sendiri dari isinya.</li>
+      <li>Situs sumber bisa berubah kapan saja. Bahwa sebuah tautan berhasil hari ini bukan jaminan untuk besok, dan itu di luar kendali aplikasi mana pun.</li>
+    </ul>
+  </section>
+
+  <p class="v-note">Aplikasinya tersedia dalam 24 bahasa. Halaman ini sengaja hanya dua, karena klaim teknis yang salah terjemah lebih berbahaya daripada tidak diterjemahkan.</p>
+
+  <p class="v-links">
+    <a href="/">Kembali ke aplikasi</a>
+    <a href="/setup">Pasang di komputer Anda</a>
+  </p>
+  </div>
+
+  <div data-lang="en" hidden>
+    <h1 class="v-title">Verification</h1>
+    <p class="v-lead">This page records what is published at this address and how to check it yourself. Every figure below is read from the files actually served, not typed in by hand.</p>
+    <p class="v-stamp">Generated at build time · <code>2026-08-31 03:12 UTC</code></p>
+    
+  <section class="v-block">
+    <h2>Check it yourself</h2>
+    <p>Download the archive, compute its digest, and compare it with the table below. If they match, the file you hold is identical to the one described here.</p>
+    <pre><code>curl -fsSL https://getsteading.vercel.app/steading.zip -o steading.zip
+
+# Windows
+certutil -hashfile steading.zip SHA256
+
+# macOS, Linux, Termux
+shasum -a 256 steading.zip</code></pre>
+  </section>
+
+  <section class="v-block">
+    <h2>File digests</h2>
+    <p>SHA-256. Sizes in bytes.</p>
+    <div class="v-scroll">
+      <table class="v-table">
+        <thead><tr><th>File</th><th>Contents</th><th class="num">Bytes</th></tr></thead>
+        <tbody>
+        <tr>
+          <td><code>steading.zip</code></td>
+          <td>the application</td>
+          <td class="num">135,217</td>
+        </tr>
+        <tr class="digest-row">
+          <td colspan="3"><code class="digest">67841f461592056cfcfacf4be0be8607aa8f009206eae85f4feebf0e0b1e1ead</code></td>
+        </tr>
+        <tr>
+          <td><code>install.ps1</code></td>
+          <td>Windows setup script</td>
+          <td class="num">4,715</td>
+        </tr>
+        <tr class="digest-row">
+          <td colspan="3"><code class="digest">5f5cc0a1e02074768318e55bda4179828679ea5ef3c6d0692081de6dc0160b68</code></td>
+        </tr>
+        <tr>
+          <td><code>install.sh</code></td>
+          <td>macOS, Linux and Termux setup script</td>
+          <td class="num">4,154</td>
+        </tr>
+        <tr class="digest-row">
+          <td colspan="3"><code class="digest">6e0f1e55ab92950c0b759272daa8cbb00393e9c19e79b46ffadf8578731d2429</code></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="v-block">
+    <h2>Build environment</h2>
+    <p>The tool versions on the machine that built this. Yours may differ; these are here so a difference can be explained rather than guessed at.</p>
+    <dl class="v-facts">
+      <dt>Node</dt><dd><code>v24.13.0</code></dd>
+      <dt>Platform</dt><dd><code>win32 x64</code></dd>
+      <dt>yt-dlp</dt><dd><code>2026.08.19</code></dd>
+      <dt>ffmpeg</dt><dd><code>8.1.2-full_build-www.gyan.dev</code></dd>
+    </dl>
+  </section>
+
+  <section class="v-block">
+    <h2>Checkable size</h2>
+    <ul class="v-counts">
+      <li><strong>60</strong> files</li>
+      <li><strong>7,297</strong> lines</li>
+      <li><strong>0</strong> npm dependencies</li>
+    </ul>
+    <p>Small enough to read in full. No build step, and no third-party packages you have to take on trust.</p>
+  </section>
+
+  <section class="v-block">
+    <h2>Reproducing it</h2>
+    <p>Install, run, then run its tests. All of it on your own machine.</p>
+    <pre><code># 1. Install and start it
+#    Windows
+powershell -c &quot;irm https://getsteading.vercel.app/install.ps1 | iex&quot;
+#    macOS, Linux, Termux
+curl -fsSL https://getsteading.vercel.app/install.sh | sh
+
+# 2. Run its tests, from the folder it installed into
+cd ~/Steading/steading
+npm test</code></pre>
+  </section>
+
+  <section class="v-block">
+    <h2>What this page proves</h2>
+    <ul class="v-list is-yes">
+      <li>The archive you downloaded is byte-for-byte the one described here.</li>
+      <li>The application runs on your own machine, with no account and nothing of ours in the middle.</li>
+      <li>The tests pass on your machine, not only on the one it was built on.</li>
+    </ul>
+  </section>
+
+  <section class="v-block">
+    <h2>What this page does NOT prove</h2>
+    <ul class="v-list is-no">
+      <li>The main page at this address is a demonstration. Demo mode does not download real video, and live mode only fetches metadata. Real downloads happen only in the copy running on your machine.</li>
+      <li>Nothing here establishes who wrote this code or when, beyond what you can determine from reading it.</li>
+      <li>Source sites change. That a link works today is no guarantee for tomorrow, and that is outside any downloader’s control.</li>
+    </ul>
+  </section>
+
+  <p class="v-note">The application itself is available in 24 languages. This page is deliberately only two: a mistranslated technical claim would be worse than an untranslated one.</p>
+
+  <p class="v-links">
+    <a href="/">Back to the app</a>
+    <a href="/setup">Run it on your computer</a>
+  </p>
+  </div>
+</main>
+
+<script type="module" src="/js/verify.js"></script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+/**
+ * Steading -- landing surface.
+ *
+ * Kept in its own file because it answers a different question from style.css. That one
+ * dresses an application someone is already using; this one has about four seconds to
+ * say what the thing is to someone who has never heard of it. Same tokens, different
+ * job, and separating them means the app shell never carries the weight of a sales page.
+ *
+ * The depth here is real 3D -- perspective plus preserve-3d, with elements at genuine Z
+ * offsets -- rather than drop shadows imitating depth. Three reasons it is hand-written
+ * CSS and not a motion library:
+ *
+ *   1. The page is served under a script-src of self with no CDN, so a library would
+ *      have to be vendored, and then maintained.
+ *   2. Transforms and opacity are the only two properties a browser can animate without
+ *      touching layout or paint. Everything below moves on those two, so the scene runs
+ *      on the compositor and stays smooth on the cheap Android phones this exists for.
+ *   3. It is a few kilobytes. A React motion stack for the same effect is several
+ *      hundred, on a project whose whole argument is that it stays small.
+ *
+ * Motion is opt-in rather than opt-out: nothing animates until the no-preference query
+ * says the visitor is happy for it to. Someone who asked their system for less motion
+ * gets the same composition, held still -- not a lesser page.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  /* Depth scale. Named rather than numeric so the layering reads as a decision: the
+     hero cards sit on these three planes and nothing lands between them by accident. */
+  --z-back: -120px;
+  --z-mid: -40px;
+  --z-front: 60px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* One rhythm for the page, so section spacing is never eyeballed. */
+  --section-y: clamp(64px, 9vw, 128px);
+}
+
+/* ------------------------------------------------------------------- shell */
+
+.wrap {
+  width: 100%;
+  max-width: var(--wide);
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 40px);
+}
+
+.section { padding-block: var(--section-y); }
+.section + .section { border-top: 1px solid var(--line); }
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.section-title {
+  margin: 0 0 14px;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.section-lede {
+  margin: 0;
+  max-width: 62ch;
+  font-size: clamp(15px, 1.5vw, 17px);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------- hero, 3D */
+
+.hero {
+  position: relative;
+  padding-block: clamp(56px, 8vw, 104px) var(--section-y);
+  overflow: hidden; /* the scene is deliberately wider than the column */
+}
+
+/* One wash, not a gradient mesh. The page has a single accent; letting it bloom once
+   behind the headline is the entire colour story. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -40% 30% auto -20%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 50%, var(--accent-ring), transparent 68%);
+  opacity: .8;
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: relative;
+  display: grid;
+  gap: clamp(40px, 6vw, 72px);
+  align-items: center;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .hero-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+}
+
+.hero-h1 {
+  margin: 0 0 18px;
+  font-size: clamp(34px, 6vw, 62px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.hero-lede {
+  margin: 0 0 28px;
+  max-width: 48ch;
+  font-size: clamp(16px, 1.8vw, 19px);
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Facts below the claim, because the claim is only worth what these are. Tabular
+   figures so the numbers do not jitter when the language changes. */
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 44px);
+  margin: 34px 0 0;
+  padding: 0;
+}
+
+.hero-fact { min-width: 0; }
+
+.hero-fact dt {
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.hero-fact dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+}
+
+/* ---------------------------------------------------------------- 3D scene */
+
+.scene {
+  position: relative;
+  perspective: 1200px;
+  perspective-origin: 50% 45%;
+  /* Reserved before anything paints, so the headline never jumps when the scene
+     arrives. A landing page that reflows on load reads as broken however good it
+     looks a second later. */
+  aspect-ratio: 4 / 3.4;
+  min-height: 260px;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  /* --rx and --ry are written by landing.js from the pointer. They default to a fixed
+     three-quarter view, so the scene is composed correctly with no JS at all. */
+  transform: rotateX(var(--rx, 8deg)) rotateY(var(--ry, -14deg));
+  transition: transform .5s var(--ease-soft);
+}
+
+/* Each card is a thing the app can hand back, stacked on three planes so the shelf
+   reads as a shelf: the eye gets parallax between them when the stage turns. */
+.card3d {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(62%, 260px);
+  transform-style: preserve-3d;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  padding: 14px;
+  will-change: transform;
+}
+
+.card3d-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.card3d-sub {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.card3d svg { width: 15px; height: 15px; flex: none; stroke: var(--accent); fill: none; }
+
+/* The three planes. Percentages hold the composition together as the box resizes; the
+   Z offsets are what make this three-dimensional rather than three stacked rectangles. */
+.card-video { transform: translate3d(-72%, -96%, var(--z-front)) rotate(-3deg); }
+.card-audio { transform: translate3d(-24%, -18%, var(--z-mid)) rotate(2deg); }
+.card-photo { transform: translate3d(-88%, 22%, var(--z-back)) rotate(-1.5deg); }
+
+/* The surface the cards sit above. Without a horizontal plane laid flat in 3D the
+   cards read as floating stickers rather than objects on a shelf. */
+.shelf {
+  position: absolute;
+  left: 50%;
+  top: 76%;
+  width: min(96%, 400px);
+  aspect-ratio: 2 / 1;
+  transform: translate3d(-50%, -50%, -80px) rotateX(74deg);
+  background: linear-gradient(to bottom, var(--accent-ring), transparent 72%);
+  border-radius: 50%;
+  filter: blur(6px);
+  opacity: .55;
+  pointer-events: none;
+}
+
+/* A waveform built from elements, not an image, so it themes and scales for free. */
+.wave { display: flex; align-items: flex-end; gap: 3px; height: 26px; margin-top: 10px; }
+.wave i { flex: 1; background: var(--accent); border-radius: 2px; opacity: .35; height: 30%; }
+
+/* A frame strip, same idea. */
+.strip { display: flex; gap: 4px; margin-top: 10px; }
+.strip i {
+  flex: 1;
+  aspect-ratio: 3 / 2;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+/* -------------------------------------------------------------- reasons */
+
+.reasons { display: grid; gap: 18px; margin-top: 40px; grid-template-columns: 1fr; }
+
+@media (min-width: 720px) { .reasons { grid-template-columns: repeat(3, 1fr); } }
+
+.reason {
+  position: relative;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  /* Depth on hover, not on load. A card that lifts when you point at it is feedback;
+     a card that lifts by itself is decoration. */
+  transition: transform .28s var(--ease-out), border-color .28s var(--ease-out),
+              box-shadow .28s var(--ease-out);
+}
+
+.reason h3 { margin: 0 0 8px; font-size: 16px; letter-spacing: -0.01em; color: var(--ink); }
+.reason p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); }
+
+.reason-num {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-text);
+}
+
+/* ------------------------------------------------------------- platforms */
+
+.platforms { display: grid; gap: 12px; margin-top: 32px; grid-template-columns: 1fr; }
+
+@media (min-width: 640px) { .platforms { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .platforms { grid-template-columns: repeat(4, 1fr); } }
+
+.platform {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.platform h3 { margin: 0 0 6px; font-size: 14px; color: var(--ink); }
+.platform p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--ink-faint); }
+
+.platform code {
+  display: block;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-soft);
+  overflow-x: auto;
+}
+
+/* ----------------------------------------------------------------- limits */
+
+.limits { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+
+.limit {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.limit svg {
+  width: 16px; height: 16px; flex: none; margin-top: 3px;
+  stroke: var(--ink-faint); fill: none;
+}
+
+/* =========================================================== motion, opt-in */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Entrances. Elements start slightly back in Z and settle forward, which reads as the
+     page assembling rather than merely fading, and costs one transform. */
+  .rise {
+    opacity: 0;
+    transform: translate3d(0, 18px, -30px);
+    transition: opacity .6s var(--ease-out), transform .6s var(--ease-out);
+  }
+  .rise.shown { opacity: 1; transform: none; }
+
+  /* Staggered by index so a row of three arrives as a row rather than a clump. */
+  .rise[data-i="1"] { transition-delay: .07s; }
+  .rise[data-i="2"] { transition-delay: .14s; }
+  .rise[data-i="3"] { transition-delay: .21s; }
+
+  /* The hero cards drift, each on its own clock so the group never pulses in unison.
+     Y and Z only -- no width, no top -- so no layout is touched on any frame. */
+  .card-video { animation: drift-a 9s var(--ease-soft) infinite; }
+  .card-audio { animation: drift-b 11s var(--ease-soft) infinite; }
+  .card-photo { animation: drift-c 13s var(--ease-soft) infinite; }
+
+  @keyframes drift-a {
+    0%, 100% { transform: translate3d(-72%, -96%, var(--z-front)) rotate(-3deg); }
+    50% { transform: translate3d(-72%, -101%, calc(var(--z-front) + 18px)) rotate(-2deg); }
+  }
+  @keyframes drift-b {
+    0%, 100% { transform: translate3d(-24%, -18%, var(--z-mid)) rotate(2deg); }
+    50% { transform: translate3d(-24%, -13%, calc(var(--z-mid) + 14px)) rotate(1deg); }
+  }
+  @keyframes drift-c {
+    0%, 100% { transform: translate3d(-88%, 22%, var(--z-back)) rotate(-1.5deg); }
+    50% { transform: translate3d(-88%, 17%, calc(var(--z-back) + 12px)) rotate(-2.5deg); }
+  }
+
+  /* The waveform, read left to right. */
+  .wave i { animation: pulse 1.9s var(--ease-soft) infinite; }
+  .wave i:nth-child(2) { animation-delay: .12s; }
+  .wave i:nth-child(3) { animation-delay: .24s; }
+  .wave i:nth-child(4) { animation-delay: .36s; }
+  .wave i:nth-child(5) { animation-delay: .48s; }
+  .wave i:nth-child(6) { animation-delay: .60s; }
+  .wave i:nth-child(7) { animation-delay: .72s; }
+  .wave i:nth-child(8) { animation-delay: .84s; }
+
+  @keyframes pulse {
+    0%, 100% { height: 28%; opacity: .3; }
+    50% { height: 100%; opacity: .7; }
+  }
+
+  .reason:hover {
+    transform: translate3d(0, -3px, 0);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Held still, but not hidden. */
+@media (prefers-reduced-motion: reduce) {
+  .rise { opacity: 1; transform: none; }
+  .stage { transition: none; }
+}
+
+/* ------------------------------------------------- scene, on smaller screens */
+
+/* Below the two-column breakpoint the scene sits under the copy, where a 4:3.4 block as
+   wide as the page becomes a 600px wall of decoration between the headline and the
+   first real control. Capping it keeps the argument above the fold on a phone, which is
+   the only place most of this project's readers will ever see it. */
+@media (max-width: 899px) {
+  .scene {
+    aspect-ratio: 16 / 10;
+    max-height: 340px;
+    margin-inline: auto;
+    max-width: 460px;
+  }
+  .card3d { width: min(70%, 210px); padding: 12px; }
+  .hero::before { inset: -30% 10% auto -30%; }
+}
+
+@media (max-width: 520px) {
+  .scene { max-height: 260px; }
+  .card3d { width: min(74%, 176px); padding: 10px; }
+  .card3d-title { font-size: 11.5px; }
+  .card3d-sub { font-size: 10.5px; }
+}
+
+/* Four facts in a row needs about 640px. Below that they go two-up rather than wrapping
+   into a ragged three-and-one, which is what a flex row does and always looks accidental. */
+.hero-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (min-width: 640px) {
+  .hero-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

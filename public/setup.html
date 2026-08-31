@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading</title>
+<meta name="description" content="Fast. Seamless. 100% Local.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="head">
+  <div class="head-inner">
+    <a class="brand brand-link" href="/">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3.5v11.5m0 0 4.2-4.2M12 15l-4.2-4.2"/>
+        <path d="M4.5 17.5v1.2a1.8 1.8 0 0 0 1.8 1.8h11.4a1.8 1.8 0 0 0 1.8-1.8v-1.2"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Steading</span>
+        <span class="tagline">Fast. Seamless. 100% Local.</span>
+      </span>
+    </a>
+
+    <div class="head-actions">
+      <div class="lang">
+        <svg class="lang-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.5"/>
+          <path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.2 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.2-3.3-8.5S9.8 5.8 12 3.5Z"/>
+        </svg>
+        <select id="lang" data-i18n-attr="aria-label:nav.language"></select>
+        <svg class="lang-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10.5 4 4 4-4"/></svg>
+      </div>
+
+      <button type="button" id="theme" class="btn-icon theme-btn" data-i18n-attr="aria-label:nav.theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="app">
+
+  <section class="setup-intro">
+    <h1 class="setup-title" data-i18n="setup.title"></h1>
+    <p class="setup-lead" data-i18n="setup.lead"></p>
+  </section>
+
+  <div class="os-tabs" id="os-tabs" role="tablist" data-i18n-attr="aria-label:setup.pickOs">
+    <button type="button" class="os-tab" data-os="windows" role="tab" aria-selected="false">Windows</button>
+    <button type="button" class="os-tab" data-os="mac"     role="tab" aria-selected="false">macOS</button>
+    <button type="button" class="os-tab" data-os="linux"   role="tab" aria-selected="false">Linux</button>
+    <button type="button" class="os-tab" data-os="android" role="tab" aria-selected="false">Android</button>
+  </div>
+
+  <section class="card setup-card">
+    <ol class="steps">
+      <li class="step">
+        <span class="step-num">1</span>
+        <div class="step-body">
+          <p class="step-text" data-i18n="setup.step1"></p>
+          <div class="cmd">
+            <code id="cmd-text"></code>
+            <button type="button" id="copy" class="btn-copy" data-i18n="setup.copy"></button>
+          </div>
+          <p class="cmd-note" id="cmd-note"></p>
+        </div>
+      </li>
+      <li class="step">
+        <span class="step-num">2</span>
+        <div class="step-body"><p class="step-text" id="step2-text"></p></div>
+      </li>
+      <li class="step">
+        <span class="step-num">3</span>
+        <div class="step-body"><p class="step-text" data-i18n="setup.step3"></p></div>
+      </li>
+    </ol>
+  </section>
+
+  <details class="disclose">
+    <summary data-i18n="setup.whatItDoes"></summary>
+    <ul class="disclose-list">
+      <li data-i18n="setup.does1"></li>
+      <li data-i18n="setup.does2"></li>
+      <li data-i18n="setup.does3"></li>
+    </ul>
+    <a class="disclose-link" id="source-link" target="_blank" rel="noopener"
+       data-i18n="setup.viewSource"></a>
+    <a class="disclose-link" href="/verify" data-i18n="setup.verify"></a>
+  </details>
+
+  <p class="setup-manual">
+    <span data-i18n="setup.manual"></span>
+    <a href="/steading.zip" download data-i18n="setup.manualLink"></a>
+  </p>
+
+  <p class="setup-back"><a href="/" data-i18n="setup.back"></a></p>
+
+</main>
+
+<footer class="foot">
+  <span class="dot is-ok"></span>
+  <span class="foot-text" data-i18n="setup.footNote"></span>
+</footer>
+
+<script type="module" src="/js/setup.js"></script>
+</body>
+</html>
