@@ -1,0 +1,398 @@
+/**
+ * The walkthrough.
+ *
+ * A recording would have been the obvious answer and is the wrong one here. A video file
+ * is megabytes, blurs the moment anyone zooms, cannot be read by a screen reader, cannot
+ * be translated without re-recording, and goes stale the first time a button moves. This
+ * is the interface rebuilt from the same tokens the application uses, so it is a few
+ * kilobytes, stays sharp at any size, and is described in real text beside every step.
+ *
+ * The screens are marked aria-hidden and the captions carry the account, because a
+ * reconstruction of an interface is decoration to anyone not looking at it: reading out
+ * a pile of fake buttons would be worse than saying nothing.
+ */
+
+.wt-page { padding-block: clamp(32px, 6vw, 64px) var(--section-y); }
+
+.wt-page .section-title { margin-top: 4px; }
+.wt-page .section-lede { margin-bottom: 34px; }
+
+/* ------------------------------------------------------------------- stage */
+
+.wt-stage {
+  display: grid;
+  gap: clamp(24px, 4vw, 48px);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+/* Side by side only when the caption has a readable measure next to the frame. Below
+   that the frame leads, because the picture is what carries the step. */
+@media (min-width: 900px) {
+  .wt-stage { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------------------------ device */
+
+.wt-device {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin-inline: auto;
+  aspect-ratio: 9 / 17;
+  padding: 12px;
+  border-radius: 28px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-lift);
+}
+
+.wt-screen {
+  position: relative;
+  height: 100%;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+/* Every slide occupies the same box; only the current one is shown. Absolute rather than
+   display:none so the frame never changes height between steps -- a device that resizes
+   as it plays reads as a glitch. */
+.wt-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.wt-slide.is-on { opacity: 1; visibility: visible; }
+
+.wt-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-sunken);
+}
+
+.wt-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); }
+.wt-dot.ok { background: var(--ok); }
+.wt-title { font-size: 11.5px; font-weight: 600; color: var(--ink); }
+
+.wt-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.wt-h { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -0.02em; color: var(--ink); }
+.wt-h.sm { font-size: 13.5px; }
+
+.wt-note { margin: 0; font-size: 11px; line-height: 1.5; color: var(--ink-faint); }
+.wt-note.faint { opacity: .75; }
+
+.wt-field {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.wt-btn {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.wt-btn.ghost {
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+}
+
+.wt-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.wt-chips span {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--ink-faint);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+.wt-progress { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.wt-progress i { display: block; height: 100%; width: 38%; border-radius: 3px; background: var(--accent); }
+.wt-progress i.wide { width: 100%; }
+
+.wt-media { display: flex; gap: 10px; align-items: center; }
+.wt-thumb {
+  width: 58px;
+  aspect-ratio: 16 / 10;
+  flex: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent-wash), var(--surface-sunken));
+  border: 1px solid var(--line);
+}
+
+.wt-seg {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+.wt-seg span {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  padding: 6px 0;
+  border-radius: 5px;
+  color: var(--ink-faint);
+}
+
+.wt-seg span.on {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.wt-row { display: flex; justify-content: space-between; align-items: baseline; }
+.wt-lbl { font-size: 11px; color: var(--ink-faint); }
+.wt-val { font-size: 12px; font-weight: 600; color: var(--ink); }
+
+.wt-slider { position: relative; height: 4px; border-radius: 2px; background: var(--line-strong); }
+.wt-slider i {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+}
+
+.wt-poles { display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-faint); }
+
+.wt-done { display: flex; align-items: center; gap: 8px; }
+.wt-done svg {
+  width: 20px; height: 20px; flex: none;
+  fill: none; stroke: var(--ok); stroke-width: 2.4;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* -------------------------------------------------------------------- side */
+
+.wt-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+
+.wt-steps li {
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  /* Dimmed rather than hidden, so the whole sequence stays readable as a list even
+     while one step is being played. */
+  opacity: .42;
+  transition: opacity .3s var(--ease-soft), background-color .3s var(--ease-soft),
+              border-color .3s var(--ease-soft);
+}
+
+.wt-steps li.is-on {
+  opacity: 1;
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.wt-steps h2 {
+  margin: 0 0 5px;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.wt-steps p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+
+/* The number comes from the markup, not from a CSS counter.
+   
+   A counter counts boxes, and the narrow layout hides five of the six steps with
+   display:none -- which takes them out of the count. The visible caption then renumbered
+   itself to "1" while the frame beside it showed step five. An attribute written into
+   the list cannot drift from the list. */
+.wt-steps li { position: relative; }
+.wt-steps li::before {
+  content: attr(data-n) ". ";
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  font-weight: 600;
+}
+.wt-steps li { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.wt-steps li > * { flex-basis: 100%; }
+.wt-steps li::before { flex-basis: auto; align-self: baseline; }
+.wt-steps li h2 { flex-basis: auto; }
+
+/* ---------------------------------------------------------------- controls */
+
+.wt-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.wt-controls .btn { min-height: var(--tap); min-width: var(--tap); padding-inline: 18px; }
+
+.wt-count {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.wt-track { display: flex; gap: 6px; margin-top: 14px; }
+
+.wt-track button {
+  flex: 1;
+  height: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: var(--line);
+  cursor: pointer;
+}
+
+/* The bar is 4px but the target is not: a transparent box either side keeps it at a
+   real tap size without making the bar itself thick. */
+.wt-track button { position: relative; }
+.wt-track button::after {
+  content: "";
+  position: absolute;
+  inset: -18px 0;
+}
+
+.wt-track button.is-on { background: var(--accent); }
+.wt-track button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+
+/* ------------------------------------------------------------------- after */
+
+.wt-after {
+  margin-top: var(--section-y);
+  padding-top: clamp(32px, 5vw, 56px);
+  border-top: 1px solid var(--line);
+}
+
+.wt-after-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 0; }
+.wt-after-actions .btn { min-height: var(--tap); display: inline-flex; align-items: center; }
+
+/* ========================================================== motion, opt-in */
+
+@media (prefers-reduced-motion: no-preference) {
+  .wt-slide {
+    transition: opacity .4s var(--ease-out), visibility .4s;
+  }
+  .wt-slide.is-on > .wt-body > * {
+    animation: wt-in .4s var(--ease-out) both;
+  }
+  .wt-slide.is-on > .wt-body > *:nth-child(2) { animation-delay: .05s; }
+  .wt-slide.is-on > .wt-body > *:nth-child(3) { animation-delay: .10s; }
+  .wt-slide.is-on > .wt-body > *:nth-child(4) { animation-delay: .15s; }
+
+  @keyframes wt-in {
+    from { opacity: 0; transform: translate3d(0, 6px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* The two steps that depict something in motion say so. Width is animated on a bar
+     that is its own layer, so nothing around it reflows.
+
+     Counted, not infinite. A step holds for about five seconds and then leaves, so a
+     loop that never ends is work nobody sees -- and on the cheap phones this project
+     exists for, a permanently animating page is a permanently busy CPU. It also keeps
+     the document from ever reaching a settled state, which is measurable: a screenshot
+     of this page timed out twice until these were bounded. */
+  .wt-slide[data-step="2"].is-on .wt-progress i { animation: wt-fill 2.6s var(--ease-soft) 2; }
+  @keyframes wt-fill {
+    0% { width: 8%; }
+    100% { width: 92%; }
+  }
+
+  .wt-slide[data-step="1"].is-on .wt-caret {
+    display: inline-block;
+    width: 1px;
+    height: 13px;
+    background: var(--accent);
+    animation: wt-blink 1.1s steps(1) 4;
+  }
+  @keyframes wt-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-slide { transition: none; }
+}
+
+/* The brand became a link on this page so it can lead home. It should still read as the
+   brand: default link colour and underline on a wordmark makes the masthead look like an
+   error. The focus ring stays, because it is still a link and still reachable by Tab. */
+.head .brand[href] { text-decoration: none; color: inherit; }
+.head .brand[href] .brand-name { color: var(--ink); }
+.head .brand[href] .tagline { color: var(--ink-faint); }
+.head .brand[href]:hover .brand-name { color: var(--accent-text); }
+.head .brand[href]:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* ------------------------------------------------- the frame, on a phone */
+
+/* At 375px a 9:17 frame 300px wide stands 567px tall and eats seventy per cent of the
+   window, pushing the step it is illustrating off the bottom of the screen. The picture
+   and its caption have to be visible together or the walkthrough explains nothing, so
+   the frame is capped against the viewport rather than against its own width. */
+@media (max-width: 899px) {
+  .wt-device {
+    max-width: min(260px, 62vw);
+    max-height: 46vh;
+    aspect-ratio: 9 / 15;
+    padding: 9px;
+    border-radius: 22px;
+  }
+  .wt-screen { border-radius: 14px; }
+  .wt-body { padding: 11px; gap: 8px; }
+  .wt-h { font-size: 14px; }
+  .wt-h.sm { font-size: 12.5px; }
+}
+
+@media (max-width: 420px) {
+  .wt-device { max-height: 40vh; }
+}
+
+/* On a phone the six captions stack under the frame, so the one being illustrated sits
+   below the fold behind the ones that are not. Measured: with step two current, its
+   caption began at y=836 in an 812px window -- the frame was showing one thing and the
+   only explanation of it was off-screen.
+   
+   So on narrow screens the list shows the current step alone. Position is not lost:
+   the numbered heading, the counter and the progress pips all still say where you are,
+   and the dimmed list was never readable at this width anyway. */
+@media (max-width: 899px) {
+  .wt-steps li { display: none; }
+  .wt-steps li.is-on { display: block; opacity: 1; }
+  .wt-side { margin-top: 4px; }
+}

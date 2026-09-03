@@ -9,6 +9,7 @@
     "dev": "node scripts/serve.js",
     "test": "node --test tests/*.test.js",
     "test:py": "python tests/test_api.py",
-    "package": "node scripts/package.js && node scripts/make-verify.js && node scripts/make-sites.js && node scripts/stamp-sw.js"
+    "package": "node scripts/package.js && node scripts/make-verify.js && node scripts/make-sites.js && node scripts/stamp-sw.js",
+    "deploy": "node scripts/stamp-sw.js && vercel deploy --prod --yes"
   }
 }

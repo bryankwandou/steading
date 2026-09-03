@@ -7,7 +7,7 @@
  * state would be actively wrong.
  */
 
-const VERSION = 'steading-hosted-6032d3a146c4';
+const VERSION = 'steading-hosted-5e0719e9be4f';
 
 const SHELL = [
   '/',
@@ -32,6 +32,20 @@ const SHELL = [
   '/js/validate.js',
   '/demo/sample.mp4',
   '/demo/sample.mp3',
+  '/live.html',
+
+  // The walkthrough, and the two files the landing page needs. Their absence from this
+  // list was not only an offline gap: stamp-sw.js hashes exactly what SHELL names, so a
+  // change to landing.css or pictures.js did not move the cache name and returning
+  // visitors kept the old copy. Anything the site serves belongs here.
+  '/walkthrough',
+  '/walkthrough.html',
+  '/js/walkthrough.js',
+  '/css/walkthrough.css',
+  '/css/landing.css',
+  '/js/landing.js',
+  '/js/pictures.js',
+
   '/manifest.json',
   '/icons/icon.svg',
   '/icons/icon-192.png',

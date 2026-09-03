@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading — walkthrough</title>
+<meta name="description" content="A step-by-step walkthrough of Steading: paste a link, choose what to keep, and the file is written to your own machine.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/landing.css">
+<link rel="stylesheet" href="/css/walkthrough.css">
+</head>
+<body>
+
+<header class="head">
+  <div class="head-inner">
+    <a class="brand" href="/">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 19.5h17"/>
+        <path d="M5.6 19.5v-6.2a1.3 1.3 0 0 1 1.3-1.3h1.6a1.3 1.3 0 0 1 1.3 1.3v6.2"/>
+        <path d="M5.6 14.1h4.2"/>
+        <path d="M11.9 19.5V8.2a1.3 1.3 0 0 1 1.3-1.3h1.5a1.3 1.3 0 0 1 1.3 1.3v11.3"/>
+        <path d="M11.9 9.9h4.1"/>
+        <path d="M18.1 19.5v-3.8a1.2 1.2 0 0 1 1.2-1.2h.9"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Steading</span>
+        <span class="tagline">Walkthrough</span>
+      </span>
+    </a>
+    <div class="head-actions">
+      <button type="button" id="theme" class="btn-icon theme-btn" aria-label="Theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap wt-page">
+
+  <p class="eyebrow">Walkthrough</p>
+  <h1 class="section-title">Six steps, start to finished file.</h1>
+  <p class="section-lede">
+    The real interface, rebuilt rather than recorded &mdash; so it stays sharp at any size
+    and a screen reader can read it. It plays on its own; stop it whenever you like.
+  </p>
+
+  <!-- Two panes: the screen on the left, the explanation on the right. Below 900px they
+       stack, screen first, because the picture is what carries the step. -->
+  <div class="wt-stage">
+
+    <!-- A phone-shaped frame, because that is where most of this project's readers are.
+         aria-hidden: every screen below is described in words in the caption beside it,
+         so a screen reader is given the account rather than a pile of fake interface. -->
+    <div class="wt-device" aria-hidden="true">
+      <div class="wt-screen" id="wt-screen">
+
+        <div class="wt-slide" data-step="1">
+          <div class="wt-bar"><span class="wt-dot"></span><span class="wt-title">Steading</span></div>
+          <div class="wt-body">
+            <p class="wt-h">What would you like to keep?</p>
+            <div class="wt-field"><span class="wt-caret"></span>https://…</div>
+            <div class="wt-btn">Check link</div>
+            <div class="wt-chips">
+              <span>MP4</span><span>FLAC</span><span>PDF</span><span>+9</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wt-slide" data-step="2">
+          <div class="wt-bar"><span class="wt-dot"></span><span class="wt-title">Steading</span></div>
+          <div class="wt-body">
+            <p class="wt-h">Reading the post</p>
+            <div class="wt-progress"><i></i></div>
+            <p class="wt-note">yt-dlp is asked what is there. Nothing has been downloaded yet.</p>
+          </div>
+        </div>
+
+        <div class="wt-slide" data-step="3">
+          <div class="wt-bar"><span class="wt-dot"></span><span class="wt-title">Steading</span></div>
+          <div class="wt-body">
+            <div class="wt-media">
+              <div class="wt-thumb"></div>
+              <div>
+                <p class="wt-h sm">Sunset over the harbour</p>
+                <p class="wt-note">4:12 · 1080p available</p>
+              </div>
+            </div>
+            <div class="wt-seg">
+              <span class="on">Video</span><span>Audio</span><span>Photo</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wt-slide" data-step="4">
+          <div class="wt-bar"><span class="wt-dot"></span><span class="wt-title">Steading</span></div>
+          <div class="wt-body">
+            <div class="wt-seg"><span>Video</span><span>Audio</span><span class="on">Photo</span></div>
+            <div class="wt-row"><span class="wt-lbl">Type</span><span class="wt-val">PDF</span></div>
+            <div class="wt-row"><span class="wt-lbl">Picture quality</span><span class="wt-val">Original</span></div>
+            <div class="wt-slider"><i></i></div>
+            <div class="wt-poles"><span>Smaller file</span><span>Original</span></div>
+          </div>
+        </div>
+
+        <div class="wt-slide" data-step="5">
+          <div class="wt-bar"><span class="wt-dot"></span><span class="wt-title">Steading</span></div>
+          <div class="wt-body">
+            <p class="wt-h sm">Downloading</p>
+            <div class="wt-progress"><i class="wide"></i></div>
+            <p class="wt-note">14 of 14 · 3.0 MB · straight to your disk</p>
+            <div class="wt-btn ghost">Cancel</div>
+          </div>
+        </div>
+
+        <div class="wt-slide" data-step="6">
+          <div class="wt-bar"><span class="wt-dot ok"></span><span class="wt-title">Steading</span></div>
+          <div class="wt-body">
+            <div class="wt-done">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4.5 4.5L19 8"/></svg>
+              <p class="wt-h sm">Saved to your device</p>
+            </div>
+            <p class="wt-note">harbour-post.pdf · 14 pages · 3.0 MB</p>
+            <p class="wt-note faint">It is an ordinary file in an ordinary folder now.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="wt-side">
+      <ol class="wt-steps" id="wt-steps">
+        <li data-n="1">
+          <h2>Paste a link</h2>
+          <p>Anything from the 1,752 sites yt-dlp knows. On a phone you can share straight
+             to Steading from the app you are already in.</p>
+        </li>
+        <li data-n="2">
+          <h2>It looks, before it fetches</h2>
+          <p>The link is read to find out what is actually there — how long, what heights
+             exist, whether there is a video track at all. No bytes are downloaded yet.</p>
+        </li>
+        <li data-n="3">
+          <h2>Choose the kind</h2>
+          <p>Video, audio or photo. Anything the post cannot provide is disabled rather
+             than left to fail when pressed.</p>
+        </li>
+        <li data-n="4">
+          <h2>Choose the shape</h2>
+          <p>Twelve formats. For photos a five-step slider trades size against fidelity —
+             the same six pages are 2.37 MB at Original and 433 KB at Small.</p>
+        </li>
+        <li data-n="5">
+          <h2>It writes to your disk</h2>
+          <p>The file is produced on your machine from the start. There is no moment when
+             a stranger's server is holding it.</p>
+        </li>
+        <li data-n="6">
+          <h2>It is yours</h2>
+          <p>An ordinary file in an ordinary folder. It still opens when this page is
+             gone and when whoever posted it has deleted the original.</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Controls sit under both panes so they are reachable with a thumb on a phone. -->
+  <div class="wt-controls">
+    <button type="button" id="wt-prev" class="btn btn-quiet" aria-label="Previous step">‹</button>
+    <button type="button" id="wt-play" class="btn btn-primary" aria-pressed="true">Pause</button>
+    <button type="button" id="wt-next" class="btn btn-quiet" aria-label="Next step">›</button>
+    <p class="wt-count" id="wt-count" role="status">Step 1 of 6</p>
+  </div>
+
+  <div class="wt-track" id="wt-track" aria-hidden="true">
+    <button type="button" data-go="1"></button><button type="button" data-go="2"></button>
+    <button type="button" data-go="3"></button><button type="button" data-go="4"></button>
+    <button type="button" data-go="5"></button><button type="button" data-go="6"></button>
+  </div>
+
+  <section class="wt-after">
+    <h2 class="section-title">Try the part that needs nothing installed</h2>
+    <p class="section-lede">
+      Photos work on the site itself: paste a link to a post and a PDF comes back. Video
+      and audio are handled by the application on your own machine.
+    </p>
+    <p class="wt-after-actions">
+      <a class="btn btn-primary" href="/#try">Paste a link</a>
+      <a class="btn btn-quiet" href="/#install">Install the app</a>
+    </p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span class="foot-text">
+    Steading — <a href="https://github.com/bryankwandou/steading/blob/main/ENGINEERING.md">engineering notes</a>
+  </span>
+</footer>
+
+<script type="module" src="/js/theme.js"></script>
+<script type="module" src="/js/walkthrough.js"></script>
+</body>
+</html>

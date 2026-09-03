@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "node scripts/stamp-sw.js",
+  "buildCommand": null,
   "outputDirectory": "public",
   "headers": [
     {
@@ -215,5 +215,6 @@
     "api/info.py": {
       "maxDuration": 30
     }
-  }
+  },
+  "cleanUrls": true
 }
