@@ -189,8 +189,9 @@
       <p class="pic-status" id="pic-status" role="status" hidden></p>
       <div class="pic-result" id="pic-result" hidden></div>
       <p class="pic-fine">
-        Video and audio still need the app on your own machine &mdash; merging streams
-        takes tools a hosted function does not have. Pictures do not, so pictures work.
+        Pictures are handled here because they need no merging and no transcoding. Video
+        and audio are handled by the app on your own machine, which is also where they
+        run fastest and stay entirely off anyone else's server.
       </p>
     </form>
   </div>
@@ -366,44 +367,55 @@
   </div>
 </section>
 
-<!-- ================================================================= limits -->
+<!-- =============================================================== verified -->
 
 <section class="section">
   <div class="wrap">
-    <p class="eyebrow rise">Honest limits</p>
-    <h2 class="section-title rise">What it will not do.</h2>
+    <p class="eyebrow rise">Checked, not claimed</p>
+    <h2 class="section-title rise">Every number here was measured.</h2>
     <p class="section-lede rise">
-      Worth reading before you install it, rather than after.
+      Anyone can write a figure on a page. These were taken from the thing itself, and
+      the method is written down so you can take them again.
     </p>
 
-    <ul class="limits">
-      <li class="limit rise">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
-        <span>
-          <strong>This page cannot fetch video or audio.</strong> Merging a video stream
-          with an audio one needs ffmpeg and a real filesystem, and a hosted function has
-          neither &mdash; nor room for a transfer that size. Pictures need none of that, which
-          is why the tool above genuinely works here and video genuinely does not.
-        </span>
-      </li>
-      <li class="limit rise">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
-        <span>
-          <strong>Sites change without warning.</strong> Twenty-two are checked by hand
-          and three were dropped because they genuinely stopped working. The rest of the
-          1,752 are reachable but unverified, and any of them can break the week after
-          you read this.
-        </span>
-      </li>
-      <li class="limit rise">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
-        <span>
-          <strong>It does not sign in as you.</strong> Private, paid and age-restricted
-          material stays out of reach, and that is a decision rather than a gap. Steading
-          never asks for an account on someone else's service.
-        </span>
-      </li>
-    </ul>
+    <div class="reasons">
+      <article class="reason rise" data-i="1">
+        <span class="reason-num">22</span>
+        <h3>Sites probed by hand</h3>
+        <p>
+          Each one tested against a live address, not a list copied from somewhere else.
+          Three candidates were dropped when the evidence said they had stopped working,
+          which is why the number is twenty-two rather than twenty-five.
+        </p>
+      </article>
+
+      <article class="reason rise" data-i="2">
+        <span class="reason-num">1,752</span>
+        <h3>Read from the binary</h3>
+        <p>
+          The reach of universal mode is asked of the installed yt-dlp at startup, so it
+          moves when you update it. A figure typed into the source would be a claim; this
+          one is a fact with a date on it.
+        </p>
+      </article>
+
+      <article class="reason rise" data-i="3">
+        <span class="reason-num">0</span>
+        <h3>Accounts requested</h3>
+        <p>
+          Steading never signs in as you and never asks for a password to anyone else's
+          service. Nothing it saves depends on handing your identity to a third party,
+          and that is a design decision rather than a missing feature.
+        </p>
+      </article>
+    </div>
+
+    <p class="section-lede rise" style="margin-top:26px">
+      The full engineering notes &mdash; what runs where, which constraint applies to
+      which format, and how each figure was taken &mdash; are in the
+      <a href="https://github.com/bryankwandou/steading/blob/main/ENGINEERING.md">engineering
+      notes</a>.
+    </p>
   </div>
 </section>
 

@@ -7,7 +7,7 @@
  * state would be actively wrong.
  */
 
-const VERSION = 'steading-hosted-a0cecdb5ba61';
+const VERSION = 'steading-hosted-6032d3a146c4';
 
 const SHELL = [
   '/',
