@@ -1,0 +1,440 @@
+"""
+A post's pictures, bound into one PDF -- on the server, for someone who has no computer.
+
+This is the half of the product that genuinely can run here, and the reason is worth
+stating because the other half genuinely cannot.
+
+A video download needs ffmpeg to merge a video stream with an audio one, needs a
+writable seekable filesystem to do it in, and moves tens of megabytes. None of those
+three things exists in a serverless function. That is why api/info.py offers metadata
+only, and it was right to.
+
+Pictures need none of them. There is no merging, no transcoding, and a post of fourteen
+photos becomes a PDF of a few hundred kilobytes. It fits inside the execution limit and
+inside the response limit with room to spare. So the one thing a creator with nothing but
+a phone most often wants -- a carousel saved as a single file they can open, keep, and
+send -- works with nothing installed at all.
+
+Two limits are real and are enforced rather than hoped about:
+
+- The response cap. Serverless replies are capped a few megabytes up, so MAX_PAGES and
+  MAX_TOTAL_BYTES stop a photo board from producing a reply that is silently truncated
+  into a corrupt PDF. Hitting the cap ends the PDF early and says so in a header rather
+  than failing.
+- The clock. Every fetch is bounded and the whole run stops collecting once the budget
+  is spent, because a function killed mid-write returns nothing at all, and a shorter
+  PDF is worth more than a dead request.
+
+Nothing here needs a third-party package. The PDF is assembled by hand and JPEG bytes
+are embedded verbatim through DCTDecode, so no pixel is decoded and no library has to be
+installed, audited, or kept up to date.
+"""
+
+import json
+import re
+import socket
+import struct
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import zlib
+from http.server import BaseHTTPRequestHandler
+
+MAX_BODY = 8 * 1024
+
+# Response and time budgets. Deliberately conservative: the failure mode of guessing
+# high is a truncated reply, which reads to the user as a broken file.
+MAX_PAGES = 40
+MAX_TOTAL_BYTES = 3 * 1024 * 1024
+TIME_BUDGET_S = 45.0
+
+MAX_IMAGE_BYTES = 8 * 1024 * 1024
+MIN_IMAGE_BYTES = 3 * 1024
+MAX_HTML_BYTES = 4 * 1024 * 1024
+
+UA = "Mozilla/5.0 (compatible; Steading/1.0; +https://steading.vercel.app)"
+
+# Names that are almost never the picture anyone wanted: interface furniture, avatars,
+# tracking pixels. Occasionally wrong, and that is the right trade -- a PDF padded with
+# eleven copies of a site's logo is worse than one that missed a photo.
+JUNK = re.compile(
+    r"(sprite|icon|favicon|logo|avatar|badge|emoji|spacer|pixel|1x1|blank"
+    r"|placeholder|loading|thumb_?small|profile_?pic)",
+    re.I,
+)
+
+
+# --------------------------------------------------------------------- safety
+
+
+def _is_private(ip):
+    """Addresses this function must never be talked into fetching.
+
+    Every URL reaching this file was written by whoever controls the page it came from.
+    Resolving the name and checking the address is what stops a hostile page naming an
+    internal address and having the platform fetch it back as a "photo". Resolved rather
+    than pattern-matched, because a public-looking hostname is free to have an A record
+    pointing anywhere it likes.
+    """
+    try:
+        packed = socket.inet_pton(socket.AF_INET, ip)
+    except OSError:
+        try:
+            packed6 = socket.inet_pton(socket.AF_INET6, ip)
+        except OSError:
+            return True  # unparseable is not a risk worth taking
+        low = ip.lower()
+        if low in ("::1", "::"):
+            return True
+        if low.startswith(("fe80", "fc", "fd")):
+            return True
+        mapped = re.match(r"^::ffff:(\d+\.\d+\.\d+\.\d+)$", low)
+        return _is_private(mapped.group(1)) if mapped else False
+
+    a, b = packed[0], packed[1]
+    if a in (0, 10, 127):
+        return True
+    if a == 169 and b == 254:  # link-local, and cloud metadata
+        return True
+    if a == 172 and 16 <= b <= 31:
+        return True
+    if a == 192 and b == 168:
+        return True
+    if a == 100 and 64 <= b <= 127:  # carrier-grade NAT
+        return True
+    return a >= 224  # multicast and reserved
+
+
+def _fetchable(url):
+    """True when this URL is safe for the server to request."""
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except ValueError:
+        return False
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        return False
+    try:
+        infos = socket.getaddrinfo(parsed.hostname, None)
+    except OSError:
+        return False
+    # Every address the name resolves to has to pass, not just the first: a hostile name
+    # can return one public address and one loopback and hope for a lucky pick.
+    return bool(infos) and all(not _is_private(i[4][0]) for i in infos)
+
+
+def _get(url, timeout, accept, cap):
+    """One bounded GET. Returns (bytes, content_type) or (None, None)."""
+    if not _fetchable(url):
+        return None, None
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": accept})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as res:
+            ctype = (res.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+            declared = res.headers.get("Content-Length")
+            if declared and declared.isdigit() and int(declared) > cap:
+                return None, None
+            # read one byte past the cap so an oversized body is detected rather than
+            # silently truncated into something that will not parse.
+            body = res.read(cap + 1)
+            if len(body) > cap:
+                return None, None
+            return body, ctype
+    except (urllib.error.URLError, urllib.error.HTTPError, socket.timeout, OSError, ValueError):
+        return None, None
+
+
+# -------------------------------------------------------------------- finding
+
+
+def _attr(tag, name):
+    m = re.search(name + r"""\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))""", tag, re.I)
+    if not m:
+        return None
+    return (m.group(2) or m.group(3) or m.group(4) or "").strip()
+
+
+def _from_meta(html):
+    out = []
+    for tag in re.findall(r"<meta\b[^>]*>", html, re.I):
+        key = (_attr(tag, "property") or _attr(tag, "name") or "").lower()
+        if key not in ("og:image", "og:image:url", "og:image:secure_url", "twitter:image"):
+            continue
+        content = _attr(tag, "content")
+        if content:
+            out.append(content)
+    return out
+
+
+def _from_jsonld(html):
+    """JSON-LD image fields.
+
+    The shape is wildly inconsistent in the wild -- a string, a list of strings, an
+    object with a url, a list of those -- so this walks whatever it finds rather than
+    assuming one of them.
+    """
+    out = []
+    for block in re.findall(
+        r"""<script\b[^>]*type\s*=\s*["']application/ld\+json["'][^>]*>(.*?)</script>""",
+        html, re.I | re.S,
+    ):
+        try:
+            data = json.loads(block)
+        except (ValueError, TypeError):
+            continue  # malformed JSON-LD is extremely common and not our problem
+
+        stack = [(data, 0)]
+        while stack:
+            node, depth = stack.pop()
+            if depth > 6:
+                continue
+            if isinstance(node, list):
+                stack.extend((n, depth + 1) for n in node)
+            elif isinstance(node, dict):
+                for key, value in node.items():
+                    if key in ("image", "contentUrl", "thumbnailUrl"):
+                        pending = [value]
+                        while pending:
+                            v = pending.pop()
+                            if isinstance(v, str):
+                                out.append(v)
+                            elif isinstance(v, list):
+                                pending.extend(v)
+                            elif isinstance(v, dict) and isinstance(v.get("url"), str):
+                                out.append(v["url"])
+                    else:
+                        stack.append((value, depth + 1))
+    return out
+
+
+def _from_img(html):
+    out = []
+    for tag in re.findall(r"<img\b[^>]*>", html, re.I):
+        # srcset first: its last entry is usually the largest copy on offer.
+        srcset = _attr(tag, "srcset")
+        if srcset:
+            parts = [p.strip().split()[0] for p in srcset.split(",") if p.strip()]
+            if parts:
+                out.append(parts[-1])
+                continue
+        # Lazy-loading pages leave the real address in a data- attribute and a
+        # placeholder in src, so those are worth more than src itself.
+        src = _attr(tag, "data-src") or _attr(tag, "data-original") or _attr(tag, "src")
+        if src:
+            out.append(src)
+    return out
+
+
+def collect(page_url, limit):
+    """Candidate picture URLs from a page, in the order the page most likely meant."""
+    html_bytes, ctype = _get(page_url, 20, "text/html,application/xhtml+xml", MAX_HTML_BYTES)
+    if not html_bytes or "html" not in (ctype or ""):
+        return []
+    html = html_bytes.decode("utf-8", "replace")
+
+    # Meta and JSON-LD are what the page nominated for itself; <img> is a guess, so it
+    # goes last and only its non-junk entries count.
+    candidates = _from_meta(html) + _from_jsonld(html) + [
+        u for u in _from_img(html) if not JUNK.search(u)
+    ]
+
+    seen, out = set(), []
+    for raw in candidates:
+        if not raw or raw.startswith("data:"):
+            continue
+        try:
+            resolved = urllib.parse.urljoin(page_url, raw)
+        except ValueError:
+            continue
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        out.append(resolved)
+        if len(out) >= limit:
+            break
+    return out
+
+
+# ------------------------------------------------------------------------ pdf
+
+
+def _jpeg_size(buf):
+    """Pixel dimensions from a JPEG's SOF marker, without decoding a pixel."""
+    i = 2
+    n = len(buf)
+    while i + 9 < n:
+        if buf[i] != 0xFF:
+            i += 1
+            continue
+        marker = buf[i + 1]
+        # SOF0..SOF15, excluding the four that are not frame headers.
+        if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+            height, width = struct.unpack(">HH", buf[i + 5:i + 9])
+            return width, height
+        if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+            i += 2
+            continue
+        seg = struct.unpack(">H", buf[i + 2:i + 4])[0]
+        i += 2 + seg
+    return None
+
+
+def images_to_pdf(images):
+    """One page per picture, each page the size of its picture.
+
+    Pages are sized to the image rather than to A4 so a portrait photo is not given
+    letterbox margins it never had. JPEG bytes go in verbatim through DCTDecode, so
+    nothing is decoded and nothing is re-encoded: the picture in the PDF is bit for bit
+    the picture that came off the site.
+    """
+    objects = [b""]  # object numbers are 1-based; index 0 is the free-list head
+
+    def add(payload):
+        objects.append(payload)
+        return len(objects) - 1
+
+    page_ids, kids = [], []
+    for data in images:
+        size = _jpeg_size(data)
+        if not size:
+            continue
+        width, height = size
+
+        img_id = add(
+            b"<< /Type /XObject /Subtype /Image /Width " + str(width).encode()
+            + b" /Height " + str(height).encode()
+            + b" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "
+            + str(len(data)).encode() + b" >>\nstream\n" + data + b"\nendstream"
+        )
+        content = (
+            b"q " + str(width).encode() + b" 0 0 " + str(height).encode()
+            + b" 0 0 cm /I0 Do Q"
+        )
+        content_id = add(
+            b"<< /Length " + str(len(content)).encode() + b" >>\nstream\n"
+            + content + b"\nendstream"
+        )
+        page_id = add(None)  # reserved: the page needs the Pages id, which is not known yet
+        page_ids.append((page_id, img_id, content_id, width, height))
+        kids.append(page_id)
+
+    if not page_ids:
+        return None
+
+    pages_id = add(
+        b"<< /Type /Pages /Count " + str(len(kids)).encode() + b" /Kids ["
+        + b" ".join(str(k).encode() + b" 0 R" for k in kids) + b"] >>"
+    )
+
+    for page_id, img_id, content_id, width, height in page_ids:
+        objects[page_id] = (
+            b"<< /Type /Page /Parent " + str(pages_id).encode()
+            + b" 0 R /MediaBox [0 0 " + str(width).encode() + b" " + str(height).encode()
+            + b"] /Resources << /XObject << /I0 " + str(img_id).encode()
+            + b" 0 R >> >> /Contents " + str(content_id).encode() + b" 0 R >>"
+        )
+
+    catalog_id = add(b"<< /Type /Catalog /Pages " + str(pages_id).encode() + b" 0 R >>")
+
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = [0] * len(objects)
+    for num in range(1, len(objects)):
+        offsets[num] = len(out)
+        out += str(num).encode() + b" 0 obj\n" + objects[num] + b"\nendobj\n"
+
+    start = len(out)
+    out += b"xref\n0 " + str(len(objects)).encode() + b"\n0000000000 65535 f \n"
+    for num in range(1, len(objects)):
+        out += ("%010d 00000 n \n" % offsets[num]).encode()
+    out += (
+        b"trailer\n<< /Size " + str(len(objects)).encode()
+        + b" /Root " + str(catalog_id).encode() + b" 0 R >>\nstartxref\n"
+        + str(start).encode() + b"\n%%EOF\n"
+    )
+    return bytes(out)
+
+
+# --------------------------------------------------------------------- handler
+
+
+class handler(BaseHTTPRequestHandler):
+    def _json(self, status, payload):
+        body = json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        started = time.monotonic()
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = 0
+        if length <= 0 or length > MAX_BODY:
+            return self._json(400, {"code": "bad_request"})
+
+        try:
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            page_url = str(payload.get("url") or "").strip()
+        except (ValueError, UnicodeDecodeError):
+            return self._json(400, {"code": "bad_request"})
+
+        if not _fetchable(page_url):
+            return self._json(400, {"code": "bad_url"})
+
+        urls = collect(page_url, MAX_PAGES * 3)
+        if not urls:
+            return self._json(422, {"code": "no_image"})
+
+        pages, total, truncated = [], 0, False
+        for url in urls:
+            if len(pages) >= MAX_PAGES:
+                truncated = True
+                break
+            # A function killed mid-write returns nothing at all, so the budget is
+            # checked before each fetch rather than hoped about.
+            if time.monotonic() - started > TIME_BUDGET_S:
+                truncated = True
+                break
+
+            data, ctype = _get(url, 12, "image/*", MAX_IMAGE_BYTES)
+            if not data or len(data) < MIN_IMAGE_BYTES:
+                continue
+            # Only JPEG can be embedded verbatim, and there is no encoder here. A PNG is
+            # skipped rather than mangled -- the local app converts those.
+            if not (ctype == "image/jpeg" and data[:3] == b"\xff\xd8\xff"):
+                continue
+            if total + len(data) > MAX_TOTAL_BYTES:
+                truncated = True
+                break
+
+            pages.append(data)
+            total += len(data)
+
+        if not pages:
+            return self._json(422, {"code": "no_image"})
+
+        pdf = images_to_pdf(pages)
+        if not pdf:
+            return self._json(422, {"code": "no_image"})
+
+        name = (urllib.parse.urlparse(page_url).path.rstrip("/").split("/") or ["post"])[-1]
+        name = re.sub(r"[^A-Za-z0-9._-]", "_", urllib.parse.unquote(name))[:60] or "post"
+
+        self.send_response(200)
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Length", str(len(pdf)))
+        self.send_header("Content-Disposition", 'attachment; filename="%s.pdf"' % name)
+        self.send_header("Cache-Control", "no-store")
+        # So the page can tell the reader what it actually got, rather than leaving them
+        # to count the pages and wonder whether something went missing.
+        self.send_header("X-Steading-Pages", str(len(pages)))
+        self.send_header("X-Steading-Truncated", "1" if truncated else "0")
+        self.end_headers()
+        self.wfile.write(pdf)
+
+    def do_GET(self):
+        self._json(405, {"code": "method_not_allowed"})

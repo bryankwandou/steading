@@ -43,10 +43,25 @@ URL_CASES = [
     ("https://www.instagram.com/reel/Cabc/", "instagram"),
     ("https://fb.watch/abc/", "facebook"),
     ("https://m.facebook.com/watch/?v=1", "facebook"),
-    # Rejections
-    ("https://notyoutube.com/x", "url_unsupported_site"),
+    # Universal mode accepts an unlisted public host, but it must never be mistaken for
+    # a listed one. notyoutube.com merely contains a supported name and is labelled
+    # "other", like any other stranger.
+    ("https://notyoutube.com/x", "other"),
+    ("https://example.com/x", "other"),
+    # A name nothing answers for is refused rather than handed to a subprocess. These two
+    # are reserved and never resolve, which is exactly why they are useful here.
     ("https://youtube.com.evil.test/x", "url_unsupported_site"),
     ("https://evil.example.com/x", "url_unsupported_site"),
+    # The visitor's own network is still off limits, listed or not.
+    ("http://127.0.0.1:8080/x", "url_unsupported_site"),
+    ("http://192.168.1.1/", "url_unsupported_site"),
+    ("http://169.254.169.254/latest/meta-data/", "url_unsupported_site"),
+    ("http://router/", "url_unsupported_site"),
+    ("http://nas.local/", "url_unsupported_site"),
+    # A perfectly ordinary public name whose DNS answers with a private address. The
+    # hostname alone gives nothing away; only resolving it does.
+    ("http://192.168.1.1.nip.io/", "url_unsupported_site"),
+    ("http://127.0.0.1.nip.io/x", "url_unsupported_site"),
     # Recognised but impossible, and reported as such rather than as a generic refusal.
     ("https://www.threads.com/share/BCJiKr3SJq/", "url_site_locked"),
     ("https://threads.net/@a/post/b", "url_site_locked"),

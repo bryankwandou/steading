@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading</title>
+<meta name="description" content="Fast. Seamless. 100% Local.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="head">
+  <div class="head-inner">
+    <a class="brand brand-link" href="/">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3.5v11.5m0 0 4.2-4.2M12 15l-4.2-4.2"/>
+        <path d="M4.5 17.5v1.2a1.8 1.8 0 0 0 1.8 1.8h11.4a1.8 1.8 0 0 0 1.8-1.8v-1.2"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Steading</span>
+        <span class="tagline">Fast. Seamless. 100% Local.</span>
+      </span>
+    </a>
+    <div class="head-actions">
+      <div class="v-langs" role="group">
+        <button type="button" class="v-lang is-on" data-show="id">ID</button>
+        <button type="button" class="v-lang" data-show="en">EN</button>
+      </div>
+      <button type="button" id="theme" class="btn-icon theme-btn" aria-label="Theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="app v-page">
+  <div data-lang="id">
+  <h1 class="v-title">Situs yang didukung</h1>
+  <p class="v-lead">Daftar ini dibaca langsung dari kode yang memutuskan tautan mana diterima, jadi ia tidak bisa menjanjikan situs yang akan ditolak aplikasinya. Per 2026-09-02: 23 situs, 17 sudah diuji dengan tautan sungguhan, 6 belum.</p>
+
+  
+  <section class="s-block">
+    <h2>Diuji dan berhasil — 17</h2>
+    <p>Sebuah tautan hidup benar-benar diambil di mesin nyata, dengan tanggalnya. Beberapa dijalankan sampai berkasnya jadi.</p>
+    <div class="v-scroll">
+      <table class="v-table s-table">
+        <thead><tr><th>Situs yang didukung</th><th>Alamat yang diterima</th><th></th></tr></thead>
+        <tbody>
+        <tr>
+          <td class="s-name">YouTube</td>
+          <td class="s-hosts"><code>youtube.com</code> <code>youtu.be</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> MP4 and MP3 end to end, file served.</td>
+        </tr>
+        <tr>
+          <td class="s-name">TikTok</td>
+          <td class="s-hosts"><code>tiktok.com</code> <code>vm.tiktok.com</code> <code>vt.tiktok.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> Had failed here before with &quot;Unable to extract universal data for rehydration&quot;. It passes now that a refused request is retried with a browser fingerprint: 10 formats returned.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Facebook</td>
+          <td class="s-hosts"><code>facebook.com</code> <code>fb.watch</code> <code>fb.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> A public video returned 2 formats. Most other posts need a login, which this app refuses to work around.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Twitch</td>
+          <td class="s-hosts"><code>twitch.tv</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Vimeo</td>
+          <td class="s-hosts"><code>vimeo.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> One older video answered &quot;web client only works when logged-in&quot;; a current one passed. Per-video, not site-wide.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Dailymotion</td>
+          <td class="s-hosts"><code>dailymotion.com</code> <code>dai.ly</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Reddit</td>
+          <td class="s-hosts"><code>reddit.com</code> <code>redd.it</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> MP4, MKV and JPG through the running server.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Snapchat</td>
+          <td class="s-hosts"><code>snapchat.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Bluesky</td>
+          <td class="s-hosts"><code>bsky.app</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Telegram</td>
+          <td class="s-hosts"><code>t.me</code> <code>telegram.me</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Bilibili</td>
+          <td class="s-hosts"><code>bilibili.com</code> <code>b23.tv</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Kick</td>
+          <td class="s-hosts"><code>kick.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Odysee</td>
+          <td class="s-hosts"><code>odysee.com</code> <code>lbry.tv</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Rumble</td>
+          <td class="s-hosts"><code>rumble.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> Refuses the default client with 403; works when the request carries a browser fingerprint, which now happens automatically on a refusal. 9.9 MB MP4 downloaded end to end.</td>
+        </tr>
+        <tr>
+          <td class="s-name">SoundCloud <span class="s-tag">audio saja</span></td>
+          <td class="s-hosts"><code>soundcloud.com</code> <code>snd.sc</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> MP3, WAV and FLAC through the running server.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Bandcamp <span class="s-tag">audio saja</span></td>
+          <td class="s-hosts"><code>bandcamp.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Mixcloud <span class="s-tag">audio saja</span></td>
+          <td class="s-hosts"><code>mixcloud.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+  <section class="s-block">
+    <h2>Terdaftar, belum diuji — 6</h2>
+    <p>yt-dlp punya extractor-nya dan tautannya diterima, tapi belum ada yang mengonfirmasi unduhan sungguhan. Ini bukan janji.</p>
+    <div class="v-scroll">
+      <table class="v-table s-table">
+        <thead><tr><th>Situs yang didukung</th><th>Alamat yang diterima</th><th></th></tr></thead>
+        <tbody>
+        <tr>
+          <td class="s-name">Instagram</td>
+          <td class="s-hosts"><code>instagram.com</code> <code>instagr.am</code> <code>ddinstagram.com</code></td>
+          <td class="s-note">Most posts need a login, which this app refuses to work around.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Pinterest</td>
+          <td class="s-hosts"><code>pinterest.com</code> <code>pin.it</code></td>
+          <td class="s-note">Not yet reached: the listing page used to find a live URL could not be enumerated, which says nothing about the extractor itself.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Tumblr</td>
+          <td class="s-hosts"><code>tumblr.com</code></td>
+          <td class="s-note">The extractor parsed a real post; that post happened to have no video.</td>
+        </tr>
+        <tr>
+          <td class="s-name">VK</td>
+          <td class="s-hosts"><code>vk.com</code> <code>vkvideo.ru</code></td>
+          <td class="s-note">The extractor parsed a real post; that one was copyright-removed.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Weibo</td>
+          <td class="s-hosts"><code>weibo.com</code> <code>weibo.cn</code></td>
+          <td class="s-note">Not yet reached: the listing page used to find a live URL could not be enumerated, which says nothing about the extractor itself.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Xiaohongshu</td>
+          <td class="s-hosts"><code>xiaohongshu.com</code> <code>xhslink.com</code></td>
+          <td class="s-note">Three real notes parsed, all of them photo posts rather than video.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="s-block">
+    <h2>Dicoba dan dibuang — 2</h2>
+    <p>Dibiarkan terlihat supaya kandidat yang sama tidak ditemukan ulang lalu ditambahkan penuh harap setiap beberapa bulan.</p>
+    <ul class="s-plain">
+      <li><strong>Douyin</strong> &mdash; Needs fresh cookies, even without being logged in.</li>
+      <li><strong>Vidio</strong> &mdash; The page resolves but the video manifest 404s, on two different free items.</li>
+    </ul>
+  </section>
+
+  <section class="s-block">
+    <h2>Dikenali, tapi ditolak dengan namanya</h2>
+    <p>Situs ini merakit halamannya di dalam browser dan mengunci sebagian besar kirimannya di balik login. Mengunduhnya butuh browser tanpa tampilan yang membawa akun seseorang — program yang berbeda dari ini.</p>
+    <ul class="s-plain">
+      <li><strong>Threads</strong></li>
+      <li><strong>X</strong></li>
+    </ul>
+  </section>
+
+  <p class="v-note">Kolom tengah itulah alasan halaman ini diterbitkan. &quot;Mendukung 23 situs&quot; adalah klaim; &quot;lima belas diambil pada tanggal tertentu, delapan belum&quot; adalah posisi yang bisa diperiksa.</p>
+  <p class="v-links"><a href="/">Kembali ke halaman utama</a> <a href="/verify">/verify</a></p></div>
+  <div data-lang="en" hidden>
+  <h1 class="v-title">Supported sites</h1>
+  <p class="v-lead">This list is read straight from the code that decides which links are accepted, so it cannot promise a site the app would reject. As of 2026-09-02: 23 sites, 17 fetched with a real link, 6 not yet.</p>
+
+  
+  <section class="s-block">
+    <h2>Fetched and working — 17</h2>
+    <p>A live URL was actually retrieved on a real machine, with a date. Several were run through to a finished file.</p>
+    <div class="v-scroll">
+      <table class="v-table s-table">
+        <thead><tr><th>Supported sites</th><th>Addresses accepted</th><th></th></tr></thead>
+        <tbody>
+        <tr>
+          <td class="s-name">YouTube</td>
+          <td class="s-hosts"><code>youtube.com</code> <code>youtu.be</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> MP4 and MP3 end to end, file served.</td>
+        </tr>
+        <tr>
+          <td class="s-name">TikTok</td>
+          <td class="s-hosts"><code>tiktok.com</code> <code>vm.tiktok.com</code> <code>vt.tiktok.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> Had failed here before with &quot;Unable to extract universal data for rehydration&quot;. It passes now that a refused request is retried with a browser fingerprint: 10 formats returned.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Facebook</td>
+          <td class="s-hosts"><code>facebook.com</code> <code>fb.watch</code> <code>fb.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> A public video returned 2 formats. Most other posts need a login, which this app refuses to work around.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Twitch</td>
+          <td class="s-hosts"><code>twitch.tv</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Vimeo</td>
+          <td class="s-hosts"><code>vimeo.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> One older video answered &quot;web client only works when logged-in&quot;; a current one passed. Per-video, not site-wide.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Dailymotion</td>
+          <td class="s-hosts"><code>dailymotion.com</code> <code>dai.ly</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Reddit</td>
+          <td class="s-hosts"><code>reddit.com</code> <code>redd.it</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> MP4, MKV and JPG through the running server.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Snapchat</td>
+          <td class="s-hosts"><code>snapchat.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Bluesky</td>
+          <td class="s-hosts"><code>bsky.app</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Telegram</td>
+          <td class="s-hosts"><code>t.me</code> <code>telegram.me</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Bilibili</td>
+          <td class="s-hosts"><code>bilibili.com</code> <code>b23.tv</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Kick</td>
+          <td class="s-hosts"><code>kick.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Odysee</td>
+          <td class="s-hosts"><code>odysee.com</code> <code>lbry.tv</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Rumble</td>
+          <td class="s-hosts"><code>rumble.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> Refuses the default client with 403; works when the request carries a browser fingerprint, which now happens automatically on a refusal. 9.9 MB MP4 downloaded end to end.</td>
+        </tr>
+        <tr>
+          <td class="s-name">SoundCloud <span class="s-tag">audio only</span></td>
+          <td class="s-hosts"><code>soundcloud.com</code> <code>snd.sc</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> MP3, WAV and FLAC through the running server.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Bandcamp <span class="s-tag">audio only</span></td>
+          <td class="s-hosts"><code>bandcamp.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        <tr>
+          <td class="s-name">Mixcloud <span class="s-tag">audio only</span></td>
+          <td class="s-hosts"><code>mixcloud.com</code></td>
+          <td class="s-note"><span class="s-date">2026-08-31</span> </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+  <section class="s-block">
+    <h2>Listed, not yet checked — 6</h2>
+    <p>yt-dlp has an extractor and the link is accepted, but nobody has confirmed a real download. This is not a promise.</p>
+    <div class="v-scroll">
+      <table class="v-table s-table">
+        <thead><tr><th>Supported sites</th><th>Addresses accepted</th><th></th></tr></thead>
+        <tbody>
+        <tr>
+          <td class="s-name">Instagram</td>
+          <td class="s-hosts"><code>instagram.com</code> <code>instagr.am</code> <code>ddinstagram.com</code></td>
+          <td class="s-note">Most posts need a login, which this app refuses to work around.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Pinterest</td>
+          <td class="s-hosts"><code>pinterest.com</code> <code>pin.it</code></td>
+          <td class="s-note">Not yet reached: the listing page used to find a live URL could not be enumerated, which says nothing about the extractor itself.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Tumblr</td>
+          <td class="s-hosts"><code>tumblr.com</code></td>
+          <td class="s-note">The extractor parsed a real post; that post happened to have no video.</td>
+        </tr>
+        <tr>
+          <td class="s-name">VK</td>
+          <td class="s-hosts"><code>vk.com</code> <code>vkvideo.ru</code></td>
+          <td class="s-note">The extractor parsed a real post; that one was copyright-removed.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Weibo</td>
+          <td class="s-hosts"><code>weibo.com</code> <code>weibo.cn</code></td>
+          <td class="s-note">Not yet reached: the listing page used to find a live URL could not be enumerated, which says nothing about the extractor itself.</td>
+        </tr>
+        <tr>
+          <td class="s-name">Xiaohongshu</td>
+          <td class="s-hosts"><code>xiaohongshu.com</code> <code>xhslink.com</code></td>
+          <td class="s-note">Three real notes parsed, all of them photo posts rather than video.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="s-block">
+    <h2>Tried and dropped — 2</h2>
+    <p>Kept visible so the same candidate is not rediscovered and re-added hopefully every few months.</p>
+    <ul class="s-plain">
+      <li><strong>Douyin</strong> &mdash; Needs fresh cookies, even without being logged in.</li>
+      <li><strong>Vidio</strong> &mdash; The page resolves but the video manifest 404s, on two different free items.</li>
+    </ul>
+  </section>
+
+  <section class="s-block">
+    <h2>Recognised, and refused by name</h2>
+    <p>These assemble their pages inside the browser and gate most posts behind a login. Downloading them would need a headless browser carrying someone’s account — a different program from this one.</p>
+    <ul class="s-plain">
+      <li><strong>Threads</strong></li>
+      <li><strong>X</strong></li>
+    </ul>
+  </section>
+
+  <p class="v-note">That middle column is why this page is published. &quot;Supports 23 sites&quot; is a claim; &quot;fifteen were fetched on a named date and eight were not&quot; is a position someone can check.</p>
+  <p class="v-links"><a href="/">Back to the main page</a> <a href="/verify">/verify</a></p></div>
+</main>
+
+<script type="module" src="/js/verify.js"></script>
+</body>
+</html>

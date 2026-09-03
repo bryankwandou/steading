@@ -17,17 +17,184 @@ moment. The local build does that job.
 
 import json
 import re
+import urllib.request
+import urllib.error
+import urllib.parse
+import socket
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
 MAX_BODY = 8 * 1024
 
 PLATFORMS = [
-    ("youtube", "YouTube", ["youtube.com", "youtu.be", "music.youtube.com", "m.youtube.com"]),
+    ("youtube", "YouTube", ["youtube.com", "youtu.be"]),
     ("tiktok", "TikTok", ["tiktok.com", "vm.tiktok.com", "vt.tiktok.com"]),
     ("instagram", "Instagram", ["instagram.com", "instagr.am", "ddinstagram.com"]),
-    ("facebook", "Facebook", ["facebook.com", "fb.watch", "fb.com", "m.facebook.com"]),
+    ("facebook", "Facebook", ["facebook.com", "fb.watch", "fb.com"]),
+    ("twitch", "Twitch", ["twitch.tv"]),
+    ("vimeo", "Vimeo", ["vimeo.com"]),
+    ("dailymotion", "Dailymotion", ["dailymotion.com", "dai.ly"]),
+    ("reddit", "Reddit", ["reddit.com", "redd.it"]),
+    ("pinterest", "Pinterest", ["pinterest.com", "pin.it"]),
+    ("snapchat", "Snapchat", ["snapchat.com"]),
+    ("bluesky", "Bluesky", ["bsky.app"]),
+    ("tumblr", "Tumblr", ["tumblr.com"]),
+    ("telegram", "Telegram", ["t.me", "telegram.me"]),
+    ("vk", "VK", ["vk.com", "vkvideo.ru"]),
+    ("weibo", "Weibo", ["weibo.com", "weibo.cn"]),
+    ("xiaohongshu", "Xiaohongshu", ["xiaohongshu.com", "xhslink.com"]),
+    ("bilibili", "Bilibili", ["bilibili.com", "b23.tv"]),
+    ("kick", "Kick", ["kick.com"]),
+    ("odysee", "Odysee", ["odysee.com", "lbry.tv"]),
+    ("rumble", "Rumble", ["rumble.com"]),
+    ("soundcloud", "SoundCloud", ["soundcloud.com", "snd.sc"]),
+    ("bandcamp", "Bandcamp", ["bandcamp.com"]),
+    ("mixcloud", "Mixcloud", ["mixcloud.com"]),
 ]
+
+def _is_private_host(hostname: str) -> bool:
+    """Is this hostname on the server's own network rather than out on the web?
+
+    Mirrors isPrivateHost() in the two JavaScript validators. Only consulted for hosts
+    that are not on the list, so the catalogued sites are unaffected.
+    """
+    host = hostname.lower().rstrip(".").strip("[]")
+
+    if host == "localhost" or host.endswith(".localhost"):
+        return True
+    if re.search(r"\.(local|internal|intranet|localdomain|home|lan|corp|private)$", host):
+        return True
+    if "." not in host and ":" not in host:
+        return True
+
+    if host in ("::1", "::"):
+        return True
+    if re.match(r"^f[cd][0-9a-f]{2}:", host):
+        return True
+    if re.match(r"^fe[89ab][0-9a-f]:", host):
+        return True
+    mapped = re.match(r"^::ffff:(\d+\.\d+\.\d+\.\d+)$", host)
+    if mapped:
+        return _is_private_host(mapped.group(1))
+
+    v4 = re.match(r"^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$", host)
+    if not v4:
+        return False
+
+    parts = [int(x) for x in v4.groups()]
+    if any(n > 255 for n in parts):
+        return True
+
+    a, b = parts[0], parts[1]
+    if a in (0, 127):
+        return True
+    if a == 10:
+        return True
+    if a == 172 and 16 <= b <= 31:
+        return True
+    if a == 192 and b == 168:
+        return True
+    if a == 169 and b == 254:
+        return True
+    if a == 100 and 64 <= b <= 127:
+        return True
+    if a >= 224:
+        return True
+
+    return False
+
+
+def _resolves_privately(hostname: str) -> bool:
+    """Does this name actually point onto a private network?
+
+    _is_private_host() reads the hostname as typed, so it stops "192.168.1.1" and misses
+    "192.168.1.1.nip.io" -- an ordinary public name whose DNS answers with that same
+    address. Mirrors resolve-guard.js in the local build, including its limits: redirects
+    are not followed, and whatever fetches the URL resolves the name again for itself, so
+    this raises the cost of the attack rather than removing it.
+
+    A name that will not resolve is treated as private: an address that does not answer
+    is not one worth starting work for.
+    """
+    if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", hostname) or ":" in hostname:
+        return _is_private_host(hostname)
+
+    try:
+        infos = socket.getaddrinfo(hostname, None)
+    except OSError:
+        return True
+
+    if not infos:
+        return True
+
+    return any(_is_private_host(info[4][0]) for info in infos)
+
+
+_BROWSER_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/131.0 Safari/537.36"
+)
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Hand the 3xx back instead of following it, so each hop can be judged."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+def _redirects_inward(start_url: str, max_hops: int = 5, timeout: float = 6.0) -> bool:
+    """Does following this link land on a private address?
+
+    _resolves_privately() settles where the typed name points; it says nothing about
+    where that name forwards to. A public host can answer 302 with a private Location,
+    and whatever fetches the URL follows redirects.
+
+    Advisory, and deliberately so. The downloader makes its own requests and follows its
+    own redirects; a server that answers differently the second time still wins. What
+    this removes is the plain case.
+
+    A pre-flight that cannot complete does not refuse the download: plenty of ordinary
+    sites reject HEAD, rate-limit, or time out, and failing all of those would cost far
+    more than it buys. The typed hostname has already been checked by then.
+    """
+    current = start_url
+
+    for _ in range(max_hops):
+        try:
+            req = urllib.request.Request(
+                current,
+                method="HEAD",
+                headers={"User-Agent": _BROWSER_UA},
+            )
+            opener = urllib.request.build_opener(_NoRedirect)
+            res = opener.open(req, timeout=timeout)
+            res.close()
+            return False  # no redirect at all
+        except urllib.error.HTTPError as e:
+            if e.code < 300 or e.code >= 400:
+                return False
+            location = e.headers.get("Location")
+            if not location:
+                return False
+        except Exception:
+            return False  # could not look; the typed host was already checked
+
+        nxt = urllib.parse.urlparse(urllib.parse.urljoin(current, location))
+        if nxt.scheme not in ("http", "https"):
+            return True
+        if not nxt.hostname:
+            return True
+        if _is_private_host(nxt.hostname) or _resolves_privately(nxt.hostname):
+            return True
+
+        current = nxt.geturl()
+
+    return False
+
+
+
+
+
 
 
 # Sites people reasonably expect to work, which cannot: they assemble their posts in the
@@ -96,7 +263,15 @@ def validate_url(raw):
             # Third slot carries the site name; it comes from the table above, never
             # from the request, so nothing user-supplied reaches the response.
             return None, "url_site_locked", locked
-        return None, "url_unsupported_site", None
+
+        # Universal mode: an unlisted host is accepted, but only once it is established
+        # to be out on the public web. Same rule as both JavaScript validators.
+        if _is_private_host(parsed.hostname) or _resolves_privately(parsed.hostname):
+            return None, "url_unsupported_site", None
+        # Where it points is settled; where it forwards to is not.
+        if _redirects_inward(parsed.geturl()):
+            return None, "url_unsupported_site", None
+        pid, label = "other", parsed.hostname
 
     clean = parsed._replace(fragment="", netloc=parsed.netloc.split("@")[-1])
     return clean.geturl(), pid, label

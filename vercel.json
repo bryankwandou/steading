@@ -170,6 +170,24 @@
           "value": "no-store"
         }
       ]
+    },
+    {
+      "source": "/sites",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; media-src 'self'; connect-src 'self' http://127.0.0.1:3000 http://localhost:3000; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; manifest-src 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/sites.html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; media-src 'self'; connect-src 'self' http://127.0.0.1:3000 http://localhost:3000; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; manifest-src 'self'"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -184,6 +202,18 @@
     {
       "source": "/live",
       "destination": "/live.html"
+    },
+    {
+      "source": "/sites",
+      "destination": "/sites.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/pictures.py": {
+      "maxDuration": 60
+    },
+    "api/info.py": {
+      "maxDuration": 30
+    }
+  }
 }

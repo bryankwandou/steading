@@ -161,6 +161,20 @@
   position: relative;
   perspective: 1200px;
   perspective-origin: 50% 45%;
+
+  /* A grid item defaults to min-width:auto, which means it refuses to shrink below its
+     own min-content -- 422 px here. On a 360 px phone that dragged the whole column out
+     to 416 px inside a 320 px space, and .hero overflow:hidden then quietly clipped the
+     headline and the button rather than showing a scrollbar. The max-width set further
+     down never got a chance to apply. */
+  min-width: 0;
+
+  /* And a ceiling on the width, because the height caps further down are paired with an
+     aspect-ratio: max-height:260px on 16/10 resolves to a 416 px width, wider than the
+     column a 360 px phone gives it. Capping the width lets the ratio settle the height
+     instead, which is the way round that cannot overflow. */
+  max-width: 100%;
+
   /* Reserved before anything paints, so the headline never jumps when the scene
      arrives. A landing page that reflows on load reads as broken however good it
      looks a second later. */
@@ -400,17 +414,30 @@
     aspect-ratio: 16 / 10;
     max-height: 340px;
     margin-inline: auto;
-    max-width: 460px;
+    /* min() with 100% so this cap can never exceed the column. A bare 460px sits later
+       in the cascade than the base rule and would win over it, which is how the scene
+       kept overflowing a 320 px column even after max-width:100% was added above. */
+    max-width: min(460px, 100%);
   }
   .card3d { width: min(70%, 210px); padding: 12px; }
   .hero::before { inset: -30% 10% auto -30%; }
 }
 
 @media (max-width: 520px) {
-  .scene { max-height: 260px; }
+  .scene { max-height: 260px; max-width: 100%; }
   .card3d { width: min(74%, 176px); padding: 10px; }
   .card3d-title { font-size: 11.5px; }
   .card3d-sub { font-size: 10.5px; }
+}
+
+/* Measured at 24 px on a 360 px phone, which a fingertip misses. The link sits in a
+   line of prose, so it cannot simply be made taller without opening the paragraph up;
+   the overlay extends the touch area while the text stays put. */
+.hero-other { position: relative; display: inline-block; }
+.hero-other::after {
+  content: "";
+  position: absolute;
+  inset: -14px -12px;
 }
 
 /* Four facts in a row needs about 640px. Below that they go two-up rather than wrapping
@@ -419,4 +446,91 @@
 
 @media (min-width: 640px) {
   .hero-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ------------------------------------------------------- the live picture tool */
+
+/* Given the accent background because it is the one section on this page that does
+   something rather than explains something. Everything else argues for installing the
+   app; this works where the reader is standing. */
+.try-live {
+  background: var(--accent-wash);
+  border-top: 1px solid var(--line);
+}
+
+.pic-form { margin-top: 26px; max-width: 720px; }
+
+.pic-row { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+/* Side by side only once there is room for the button's full label. Below that the
+   button goes full width, which is the shape a thumb wants anyway. */
+@media (min-width: 640px) {
+  .pic-row { flex-direction: row; align-items: stretch; }
+  .pic-row input { flex: 1; min-width: 0; }
+  .pic-row .btn { flex: none; white-space: nowrap; }
+}
+
+.pic-row input {
+  min-height: var(--tap);
+  padding: 0 14px;
+  font-size: 16px; /* below 16px iOS zooms the whole page on focus */
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.pic-row input::placeholder { color: var(--ink-faint); }
+
+.pic-row input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.pic-row .btn { min-height: var(--tap); padding-inline: 20px; }
+
+/* A disabled button that looks identical to an enabled one reads as a dead page, so the
+   busy state is visibly different rather than only unclickable. */
+.pic-row .btn[data-busy="1"] { opacity: .75; cursor: progress; }
+
+.pic-status {
+  margin: 14px 0 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.pic-status[data-tone="error"] { color: var(--danger); }
+.pic-status[data-tone="ok"] { color: var(--ok); font-weight: 600; }
+
+.pic-result { margin-top: 14px; }
+
+.pic-download { display: inline-flex; min-height: var(--tap); align-items: center; }
+
+.pic-fine {
+  margin: 18px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  max-width: 60ch;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The one moving thing in this section, and only while a request is in flight: a
+     button that changes its label but not its appearance leaves the reader unsure
+     whether the press registered at all. */
+  .pic-row .btn[data-busy="1"] {
+    animation: pic-pulse 1.4s var(--ease-soft) infinite;
+  }
+  @keyframes pic-pulse {
+    0%, 100% { opacity: .75; }
+    50% { opacity: .95; }
+  }
+
+  .pic-result { animation: pic-in .35s var(--ease-out) both; }
+  @keyframes pic-in {
+    from { opacity: 0; transform: translate3d(0, 6px, 0); }
+    to { opacity: 1; transform: none; }
+  }
 }

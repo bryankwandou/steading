@@ -11,10 +11,29 @@
  */
 
 export const PLATFORMS = [
-  { id: 'youtube',   label: 'YouTube',   hosts: ['youtube.com', 'youtu.be', 'music.youtube.com', 'm.youtube.com'] },
-  { id: 'tiktok',    label: 'TikTok',    hosts: ['tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'] },
-  { id: 'instagram', label: 'Instagram', hosts: ['instagram.com', 'instagr.am', 'ddinstagram.com'] },
-  { id: 'facebook',  label: 'Facebook',  hosts: ['facebook.com', 'fb.watch', 'fb.com', 'm.facebook.com'] },
+  { id: 'youtube',     label: 'YouTube',     hosts: ['youtube.com', 'youtu.be'] },
+  { id: 'tiktok',      label: 'TikTok',      hosts: ['tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'] },
+  { id: 'instagram',   label: 'Instagram',   hosts: ['instagram.com', 'instagr.am', 'ddinstagram.com'] },
+  { id: 'facebook',    label: 'Facebook',    hosts: ['facebook.com', 'fb.watch', 'fb.com'] },
+  { id: 'twitch',      label: 'Twitch',      hosts: ['twitch.tv'] },
+  { id: 'vimeo',       label: 'Vimeo',       hosts: ['vimeo.com'] },
+  { id: 'dailymotion', label: 'Dailymotion', hosts: ['dailymotion.com', 'dai.ly'] },
+  { id: 'reddit',      label: 'Reddit',      hosts: ['reddit.com', 'redd.it'] },
+  { id: 'pinterest',   label: 'Pinterest',   hosts: ['pinterest.com', 'pin.it'] },
+  { id: 'snapchat',    label: 'Snapchat',    hosts: ['snapchat.com'] },
+  { id: 'bluesky',     label: 'Bluesky',     hosts: ['bsky.app'] },
+  { id: 'tumblr',      label: 'Tumblr',      hosts: ['tumblr.com'] },
+  { id: 'telegram',    label: 'Telegram',    hosts: ['t.me', 'telegram.me'] },
+  { id: 'vk',          label: 'VK',          hosts: ['vk.com', 'vkvideo.ru'] },
+  { id: 'weibo',       label: 'Weibo',       hosts: ['weibo.com', 'weibo.cn'] },
+  { id: 'xiaohongshu', label: 'Xiaohongshu', hosts: ['xiaohongshu.com', 'xhslink.com'] },
+  { id: 'bilibili',    label: 'Bilibili',    hosts: ['bilibili.com', 'b23.tv'] },
+  { id: 'kick',        label: 'Kick',        hosts: ['kick.com'] },
+  { id: 'odysee',      label: 'Odysee',      hosts: ['odysee.com', 'lbry.tv'] },
+  { id: 'rumble',      label: 'Rumble',      hosts: ['rumble.com'] },
+  { id: 'soundcloud',  label: 'SoundCloud',  hosts: ['soundcloud.com', 'snd.sc'], audio: true },
+  { id: 'bandcamp',    label: 'Bandcamp',    hosts: ['bandcamp.com'], audio: true },
+  { id: 'mixcloud',    label: 'Mixcloud',    hosts: ['mixcloud.com'], audio: true },
 ];
 
 /**
@@ -55,7 +74,44 @@ function matchPlatform(hostname) {
  * @returns {{ok: true, url: string, platform: string, platformLabel: string}
  *          | {ok: false, code: string}}
  */
-export function validateUrl(input) {
+/**
+ * Is this hostname on the visitor's own network rather than out on the web?
+ *
+ * Mirrors isPrivateHost() in the local build's server/lib/validate.js -- see the note
+ * there. Only consulted for hosts that are not on the list, so the catalogued sites are
+ * unaffected; this exists to keep universal mode pointed outward.
+ */
+function isPrivateHost(hostname) {
+  const host = hostname.toLowerCase().replace(/\.$/, '');
+  const bare = host.replace(/^\[|\]$/g, '');
+
+  if (bare === 'localhost' || bare.endsWith('.localhost')) return true;
+  if (/\.(local|internal|intranet|localdomain|home|lan|corp|private)$/.test(bare)) return true;
+  if (!bare.includes('.') && !bare.includes(':')) return true;
+
+  if (bare === '::1' || bare === '::') return true;
+  if (/^f[cd][0-9a-f]{2}:/.test(bare)) return true;
+  if (/^fe[89ab][0-9a-f]:/.test(bare)) return true;
+  const mapped = bare.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  if (mapped) return isPrivateHost(mapped[1]);
+
+  const v4 = bare.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!v4) return false;
+
+  const [a, b] = [Number(v4[1]), Number(v4[2])];
+  if (v4.slice(1).some((n) => Number(n) > 255)) return true;
+  if (a === 0 || a === 127) return true;
+  if (a === 10) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true;
+  if (a >= 224) return true;
+
+  return false;
+}
+
+export function validateUrl(input, { universal = false } = {}) {
   if (typeof input !== 'string') return { ok: false, code: 'url_not_text' };
 
   const raw = input.trim();
@@ -83,7 +139,11 @@ export function validateUrl(input) {
   if (!platform) {
     const locked = matchLocked(url.hostname);
     if (locked) return { ok: false, code: 'url_site_locked', detail: locked.label };
-    return { ok: false, code: 'url_unsupported_site' };
+    if (!universal) return { ok: false, code: 'url_unsupported_site' };
+
+    // An unlisted host has to be out on the public web before anything is handed to a
+    // subprocess. Same rule as the local build, so the two cannot disagree about it.
+    if (isPrivateHost(url.hostname)) return { ok: false, code: 'url_unsupported_site' };
   }
 
   url.username = '';

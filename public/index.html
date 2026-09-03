@@ -90,6 +90,7 @@
         </div>
         <p class="hero-note" id="get-note" data-i18n="landing.getNote"></p>
         <p class="hero-paste" data-i18n="live.paste"></p>
+        <a class="hero-other" href="/sites" data-i18n="sites.link"></a>
       </div>
 
       <!-- Shown instead of the above once the app answers on this machine. Someone who
@@ -157,6 +158,41 @@
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ============================================================ works here -->
+
+<!-- The one thing this page can genuinely do, placed where a visitor meets it rather
+     than at the bottom under the argument for installing something. Everything else
+     here is honest about needing the local app; this is not, and that difference is
+     worth the best position on the page. -->
+<section class="section try-live" id="try">
+  <div class="wrap">
+    <p class="eyebrow rise">Works right here</p>
+    <h2 class="section-title rise">Paste a link. Get a PDF.</h2>
+    <p class="section-lede rise">
+      A post with a dozen photos comes back as one file, bound in order. Our server does
+      the fetching, so there is nothing to install and nothing to set up &mdash; this
+      works on a phone that has never had a computer near it.
+    </p>
+
+    <form class="pic-form rise" id="pic-form" autocomplete="off" novalidate>
+      <label class="label" for="pic-url">Link to a post or article</label>
+      <div class="pic-row">
+        <input id="pic-url" name="url" type="url" inputmode="url" spellcheck="false"
+               placeholder="https://" autocomplete="off">
+        <button type="submit" id="pic-go" class="btn btn-primary" data-busy="0">
+          Save pictures as PDF
+        </button>
+      </div>
+      <p class="pic-status" id="pic-status" role="status" hidden></p>
+      <div class="pic-result" id="pic-result" hidden></div>
+      <p class="pic-fine">
+        Video and audio still need the app on your own machine &mdash; merging streams
+        takes tools a hosted function does not have. Pictures do not, so pictures work.
+      </p>
+    </form>
   </div>
 </section>
 
@@ -344,10 +380,10 @@
       <li class="limit rise">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.1"/></svg>
         <span>
-          <strong>This page cannot download anything.</strong> The sites block hosting
-          providers by IP, so a server in a data centre gets refused where your own
-          connection is not. The demo above runs against a sample file. The real work only
-          happens on your machine.
+          <strong>This page cannot fetch video or audio.</strong> Merging a video stream
+          with an audio one needs ffmpeg and a real filesystem, and a hosted function has
+          neither &mdash; nor room for a transfer that size. Pictures need none of that, which
+          is why the tool above genuinely works here and video genuinely does not.
         </span>
       </li>
       <li class="limit rise">
@@ -378,5 +414,6 @@
 
 <script type="module" src="/js/app.js"></script>
 <script type="module" src="/js/landing.js"></script>
+<script type="module" src="/js/pictures.js"></script>
 </body>
 </html>
