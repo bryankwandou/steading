@@ -7,7 +7,7 @@
  * state would be actively wrong.
  */
 
-const VERSION = 'steading-hosted-5e0719e9be4f';
+const VERSION = 'steading-hosted-154eb712163a';
 
 const SHELL = [
   '/',
@@ -33,6 +33,9 @@ const SHELL = [
   '/demo/sample.mp4',
   '/demo/sample.mp3',
   '/live.html',
+  '/evidence',
+  '/evidence.html',
+  '/css/evidence.css',
 
   // The walkthrough, and the two files the landing page needs. Their absence from this
   // list was not only an offline gap: stamp-sw.js hashes exactly what SHELL names, so a

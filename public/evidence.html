@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading — evidence</title>
+<meta name="description" content="What was built, what was measured, and the screenshots and commands that show it. Every figure here can be taken again.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/landing.css">
+<link rel="stylesheet" href="/css/evidence.css">
+</head>
+<body>
+
+<header class="head">
+  <div class="head-inner">
+    <a class="brand" href="/">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 19.5h17"/>
+        <path d="M5.6 19.5v-6.2a1.3 1.3 0 0 1 1.3-1.3h1.6a1.3 1.3 0 0 1 1.3 1.3v6.2"/>
+        <path d="M5.6 14.1h4.2"/>
+        <path d="M11.9 19.5V8.2a1.3 1.3 0 0 1 1.3-1.3h1.5a1.3 1.3 0 0 1 1.3 1.3v11.3"/>
+        <path d="M11.9 9.9h4.1"/>
+        <path d="M18.1 19.5v-3.8a1.2 1.2 0 0 1 1.2-1.2h.9"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Steading</span>
+        <span class="tagline">Evidence</span>
+      </span>
+    </a>
+    <div class="head-actions">
+      <button type="button" id="theme" class="btn-icon theme-btn" aria-label="Theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap ev-page">
+
+  <p class="eyebrow">Evidence</p>
+  <h1 class="section-title">What was built, and how each claim was checked.</h1>
+  <p class="section-lede">
+    Every figure on this page came from running the thing, and the command that produces
+    it is printed beside it. Screenshots are captured through the devtools protocol at a
+    stated viewport, so what you see is what a reader at that width sees.
+  </p>
+
+  <p class="ev-meta">
+    Captured 3 September 2026 · site <a href="https://steading.vercel.app">steading.vercel.app</a>
+    · application on <code>127.0.0.1:3000</code>, universal mode
+  </p>
+
+  <!-- ================================================================ 1 -->
+
+  <section class="ev-item">
+    <h2>1. The picture half runs on the server, with nothing installed</h2>
+    <p>
+      This was assumed impossible for most of the project's life. The assumption was too
+      broad: what a hosted function cannot do is merge a video stream with an audio one,
+      because that needs ffmpeg, a seekable filesystem and tens of megabytes of transfer.
+      Pictures need none of the three, so the whole job fits.
+    </p>
+
+    <figure class="ev-shot">
+      <img src="/docs/03-live-pdf-tool.png" alt="The Steading landing page at 390 pixels wide, showing a section headed 'Paste a link. Get a PDF.' with a link field and a 'Save pictures as PDF' button." loading="lazy" width="780" height="1688">
+      <figcaption>The tool as it appears on a phone at 390&nbsp;px. No install, no account.</figcaption>
+    </figure>
+
+    <pre class="ev-cmd"><code>curl -s -D - -o out.pdf -X POST https://steading.vercel.app/api/pictures \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://en.wikipedia.org/wiki/Lighthouse"}'</code></pre>
+
+    <table class="ev-table">
+      <caption>Measured against the live deployment</caption>
+      <tbody>
+        <tr><th scope="row">HTTP status</th><td>200 OK</td></tr>
+        <tr><th scope="row">X-Steading-Pages</th><td>18</td></tr>
+        <tr><th scope="row">X-Steading-Truncated</th><td>0</td></tr>
+        <tr><th scope="row">Response size</th><td>3,084,473 bytes</td></tr>
+        <tr><th scope="row">Wall time</th><td>~8.4 s</td></tr>
+        <tr><th scope="row"><code>file out.pdf</code></th><td>PDF document, version 1.4, 18 page(s)</td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      Driven through the interface at 390&nbsp;px rather than only over HTTP, the same
+      request reports <strong>&ldquo;Bound 16 pictures into one PDF (3.0&nbsp;MB)&rdquo;</strong>
+      and offers the file. All four failure paths were exercised too: empty field,
+      malformed address, a refused private address, and a page with no pictures on it.
+    </p>
+
+    <h3>The guard, checked in production</h3>
+    <p>
+      Every address is resolved before anything is fetched, and refused if any address it
+      resolves to is private. The second of these is the cloud metadata endpoint &mdash;
+      reaching it is how hosted credentials get stolen, so it is tested by name rather
+      than assumed covered.
+    </p>
+    <pre class="ev-cmd"><code>curl -s -X POST .../api/pictures -d '{"url":"http://127.0.0.1:8080/admin"}'
+# {"code": "bad_url"}
+
+curl -s -X POST .../api/pictures -d '{"url":"http://169.254.169.254/latest/meta-data/"}'
+# {"code": "bad_url"}</code></pre>
+  </section>
+
+  <!-- ================================================================ 2 -->
+
+  <section class="ev-item">
+    <h2>2. Three sources for video, not one</h2>
+    <p>
+      A court auditor recorded the single-source dependency as a high risk, and was right
+      about the risk. The proposed remedy &mdash; hundreds of per-site packages &mdash;
+      would have made it worse: yt-dlp already <em>is</em> roughly 1,750 per-site
+      extractors under one test suite, and this application has
+      <strong>zero npm runtime dependencies</strong>, which is what makes its privacy
+      claim checkable in the first place.
+    </p>
+    <p>
+      The remedy that works is the one already proven on the picture path: a chain of
+      independent sources, none of them required.
+    </p>
+
+    <table class="ev-table">
+      <caption><code>VIDEO_PROVIDERS</code>, tried in order until one answers</caption>
+      <tbody>
+        <tr><th scope="row"><code>ytdlp</code></th><td>The primary. ~1,750 per-site extractors.</td></tr>
+        <tr><th scope="row"><code>streamlink</code></th><td>A separate project with its own extractors, so it fails on a different set of sites. Optional; skipped when absent.</td></tr>
+        <tr><th scope="row"><code>scrape</code></th><td><code>lib/videosrc.js</code>. Depends on nothing at all &mdash; no binary, no package. Cannot be uninstalled.</td></tr>
+      </tbody>
+    </table>
+
+    <p>The third link proved on its own, with yt-dlp disabled entirely:</p>
+    <pre class="ev-cmd"><code>VIDEO_PROVIDERS=scrape npm run universal
+
+POST /api/info  https://www.w3schools.com/html/html5_video.asp
+  → extractor: page   title: W3Schools.com      hasVideo: true
+
+POST /api/info  https://en.wikipedia.org/wiki/Video
+  → extractor: page   title: Video - Wikipedia  hasVideo: true</code></pre>
+
+    <p>
+      And a page yt-dlp rejects outright still completes through the chain:
+      <code>yt-dlp</code> alone returns <code>ERROR: Unsupported URL</code> on
+      <code>bbc.com/news</code>; the request through Steading does not fail.
+    </p>
+  </section>
+
+  <!-- ================================================================ 3 -->
+
+  <section class="ev-item">
+    <h2>3. The application</h2>
+    <p>
+      The opening screen used to be a 200&nbsp;px form centred in a 700&nbsp;px column:
+      a third of the window blank above it, a third below, and nothing on screen saying
+      what the program was or what it could hand back. It now introduces itself and lists
+      what this build can save &mdash; read from <code>/api/health</code> rather than
+      written into the markup, so it cannot claim a format the server would refuse.
+    </p>
+
+    <div class="ev-pair">
+      <figure class="ev-shot">
+        <img src="/docs/06-app-phone.png" alt="The Steading application at 390 pixels wide: heading 'What would you like to keep?', a link field on a raised card, and three rows listing video, audio and photo formats." loading="lazy" width="780" height="1688">
+        <figcaption>390&nbsp;px</figcaption>
+      </figure>
+      <figure class="ev-shot">
+        <img src="/docs/07-app-wide.png" alt="The same application at 1280 pixels wide, with the same content in a centred column." loading="lazy" width="2560" height="1600">
+        <figcaption>1280&nbsp;px</figcaption>
+      </figure>
+    </div>
+
+    <table class="ev-table">
+      <caption>Measured on the running application at 375&nbsp;px</caption>
+      <tbody>
+        <tr><th scope="row">Horizontal overflow</th><td>0 px — <code>scrollWidth</code> 375 against a 375 viewport, no element past either edge</td></tr>
+        <tr><th scope="row">Heading contrast</th><td>18.22:1 — passes AA</td></tr>
+        <tr><th scope="row">Body and label contrast</th><td>6.08:1 — passes AA</td></tr>
+        <tr><th scope="row">Faintest hint and chip</th><td>5.03:1 — passes AA</td></tr>
+        <tr><th scope="row">Tests</th><td>69 passing, 0 failing</td></tr>
+        <tr><th scope="row">npm runtime dependencies</th><td>0</td></tr>
+        <tr><th scope="row">Formats</th><td>12 — mp4, mkv, webm · mp3, m4a, opus, wav, flac · jpg, png, webp, pdf</td></tr>
+        <tr><th scope="row">Extractors in universal mode</th><td>1,752 — read from the installed binary at startup</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================================================================ 4 -->
+
+  <section class="ev-item">
+    <h2>4. The walkthrough</h2>
+    <p>
+      Six steps from pasted link to finished file, at
+      <a href="/walkthrough">/walkthrough</a>. Not a recording: a video file is
+      megabytes, blurs when zoomed, cannot be read aloud by a screen reader, cannot be
+      translated without re-recording, and goes stale the first time a button moves. This
+      is the interface rebuilt from the stylesheet the application already uses, so it is
+      a few kilobytes and stays sharp at any size.
+    </p>
+    <p>
+      It stops. Any control pauses the timer, arrow keys step through it, a hidden tab
+      halts it rather than letting it play itself out unwatched, and with reduced motion
+      set it does not start at all.
+    </p>
+
+    <div class="ev-pair">
+      <figure class="ev-shot">
+        <img src="/docs/04-walkthrough-wide.png" alt="The walkthrough at 1280 pixels: a phone-shaped frame on the left showing one step of the interface, and six numbered captions on the right with the current one highlighted." loading="lazy" width="2560" height="1600">
+        <figcaption>1280&nbsp;px — frame and captions side by side</figcaption>
+      </figure>
+      <figure class="ev-shot">
+        <img src="/docs/05-walkthrough-phone.png" alt="The same walkthrough at 390 pixels, with the frame above and a single caption below it." loading="lazy" width="780" height="1688">
+        <figcaption>390&nbsp;px — one caption at a time, so it stays beside the frame</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================================================================ 5 -->
+
+  <section class="ev-item">
+    <h2>5. The site</h2>
+
+    <div class="ev-pair">
+      <figure class="ev-shot">
+        <img src="/docs/02-landing-wide.png" alt="The Steading landing page at 1280 pixels: heading 'Keep your own copy', four figures, and a three-dimensional arrangement of file cards." loading="lazy" width="2560" height="1600">
+        <figcaption>1280&nbsp;px</figcaption>
+      </figure>
+      <figure class="ev-shot">
+        <img src="/docs/01-landing-phone.png" alt="The same landing page at 390 pixels, stacked into a single column." loading="lazy" width="780" height="1688">
+        <figcaption>390&nbsp;px</figcaption>
+      </figure>
+    </div>
+
+    <figure class="ev-shot">
+      <img src="/docs/08-sites-list.png" alt="The supported sites page, listing the platforms Steading has been checked against." loading="lazy" width="2560" height="1600">
+      <figcaption>The site list, at <a href="/sites">/sites</a>.</figcaption>
+    </figure>
+
+    <p>
+      Of the twenty-two sites listed, each was probed against a live address rather than a
+      sample link that may have rotted. Three candidates were dropped on evidence:
+      <strong>Douyin</strong> requires cookies for anything past the front page,
+      <strong>Rumble</strong> returned 403 to every probe, and <strong>Vidio</strong>
+      resolves a manifest whose every segment 404s. The number is twenty-two rather than
+      twenty-five because those three failed, and a list that keeps a broken entry to look
+      longer is worth less than a short list that is true.
+    </p>
+  </section>
+
+  <!-- ================================================================ 6 -->
+
+  <section class="ev-item">
+    <h2>6. How the screenshots were taken, and one caution</h2>
+    <p>
+      Captured through the Chrome devtools protocol, with
+      <code>Emulation.setDeviceMetricsOverride</code> setting the layout viewport
+      explicitly and <code>Page.captureScreenshot</code> taking the frame. No dependency:
+      Node 22 and later ship a global <code>WebSocket</code>, so the protocol is reachable
+      with nothing installed.
+    </p>
+    <p>
+      The obvious method &mdash; <code>chrome --headless --screenshot
+      --window-size=390,900</code> &mdash; was tried first and is wrong. It writes a file
+      of the size you asked for, but lays the page out at some wider viewport and crops
+      the result, so text runs off the right edge of every capture.
+    </p>
+    <p class="ev-caution">
+      Three times during this work that clipping looked like a real layout bug, and three
+      times measuring the document showed <code>scrollWidth</code> exactly equal to the
+      viewport with no element overflowing. A fourth apparent defect &mdash; the whole
+      page rendered grey and washed out &mdash; was also a capture artifact: the body
+      background measured <code>rgb(255,255,255)</code>, with no overlay, no filter, and
+      every element at full opacity. A fifth: the screenshots on this very page reported
+      themselves as broken, until forcing them to load eagerly returned all eight at full
+      size &mdash; the <code>loading="lazy"</code> trigger had never fired because the
+      testing browser was not rendering. <strong>Had the pictures been trusted over the
+      measurements, five fixes would have been made to code that was already correct.</strong>
+      A screenshot is evidence of what a page looks like; it is not evidence of what a
+      page is.
+    </p>
+  </section>
+
+  <section class="ev-item">
+    <h2>7. Reproducing all of it</h2>
+    <pre class="ev-cmd"><code># the application, locally
+npm install && npm run check      # reports what is missing
+npm run universal                 # all 1,752 extractors accepted
+npm test                          # 69 tests
+
+# the hosted picture tool
+curl -s -D - -o out.pdf -X POST https://steading.vercel.app/api/pictures \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://en.wikipedia.org/wiki/Lighthouse"}'
+
+# the video chain, with the primary source switched off
+VIDEO_PROVIDERS=scrape npm run universal</code></pre>
+
+    <p class="ev-links">
+      <a class="btn btn-primary" href="https://github.com/bryankwandou/steading/blob/main/ENGINEERING.md">Engineering notes</a>
+      <a class="btn btn-quiet" href="https://github.com/bryankwandou/steading-app">The application</a>
+      <a class="btn btn-quiet" href="https://github.com/bryankwandou/steading">This site</a>
+    </p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span class="foot-text">Steading — every figure on this page can be taken again.</span>
+</footer>
+
+<script type="module" src="/js/theme.js"></script>
+</body>
+</html>

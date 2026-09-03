@@ -534,3 +534,22 @@
     to { opacity: 1; transform: none; }
   }
 }
+
+/* ------------------------------------------------- stopping work nobody sees */
+
+/* The hero drift and the waveform are the page's signature, so they are not cut. But
+   they are continuous compositing work, and on the cheap Android phones this project
+   exists for that work is real: it runs on whether or not the hero is on screen, and a
+   reader who has scrolled to the install section is paying for animation they cannot
+   see.
+   
+   landing.js adds `is-resting` to the scene once it leaves the viewport. Pausing rather
+   than removing means the composition is held exactly where it was, so scrolling back
+   does not restart it with a jump. `pic-pulse` is exempt: it only runs while a request
+   is genuinely in flight, and that is worth showing even off-screen. */
+.scene.is-resting .card-video,
+.scene.is-resting .card-audio,
+.scene.is-resting .card-photo,
+.scene.is-resting .wave i {
+  animation-play-state: paused;
+}

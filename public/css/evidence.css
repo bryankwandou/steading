@@ -1,0 +1,168 @@
+/**
+ * The evidence page.
+ *
+ * A document, not a landing page: the reader is checking claims rather than being
+ * persuaded, so the measure is narrow, the type is set for reading, and every screenshot
+ * carries its viewport in the caption. Nothing here animates -- a page someone is
+ * auditing should hold still.
+ */
+
+.ev-page {
+  padding-block: clamp(32px, 6vw, 64px) var(--section-y);
+  max-width: 78ch;
+}
+
+.ev-page .section-lede { margin-bottom: 18px; }
+
+.ev-meta {
+  margin: 0 0 clamp(36px, 6vw, 56px);
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+  color: var(--ink-faint);
+}
+
+.ev-item { margin-bottom: clamp(44px, 7vw, 72px); }
+
+.ev-item h2 {
+  margin: 0 0 14px;
+  font-size: clamp(19px, 3.4vw, 23px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.ev-item h3 {
+  margin: 30px 0 10px;
+  font-size: 15.5px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.ev-item p {
+  margin: 0 0 15px;
+  font-size: 15.5px;
+  line-height: 1.68;
+  color: var(--ink-soft);
+}
+
+.ev-item strong { color: var(--ink); font-weight: 650; }
+
+/* ------------------------------------------------------------- screenshots */
+
+.ev-shot { margin: 22px 0; }
+
+.ev-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  /* The captures are of dark and light pages both; a neutral sunken ground keeps either
+     from appearing to bleed into the document around it. */
+  background: var(--surface-sunken);
+}
+
+.ev-shot figcaption {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* Two captures side by side once there is room for both to stay legible; stacked below
+   that, because a phone screenshot shrunk to half a phone's width proves nothing. */
+.ev-pair { display: grid; gap: 20px; }
+
+@media (min-width: 780px) {
+  .ev-pair { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+
+/* --------------------------------------------------------------- commands */
+
+.ev-cmd {
+  margin: 18px 0;
+  padding: 14px 16px;
+  overflow-x: auto;           /* a long command scrolls itself, never the page */
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ev-cmd code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre;
+}
+
+.ev-item p code,
+.ev-item td code,
+.ev-item th code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+/* ----------------------------------------------------------------- tables */
+
+.ev-table {
+  width: 100%;
+  margin: 18px 0;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.ev-table caption {
+  text-align: left;
+  padding-bottom: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.ev-table th,
+.ev-table td {
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.55;
+}
+
+.ev-table th[scope="row"] {
+  width: 15em;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ev-table td { color: var(--ink-soft); }
+
+/* On a phone a two-column table of long values becomes unreadable, so each row becomes
+   its own block with the label above the value. */
+@media (max-width: 560px) {
+  .ev-table th[scope="row"],
+  .ev-table td { display: block; width: auto; }
+  .ev-table th[scope="row"] { border-bottom: none; padding-bottom: 2px; }
+}
+
+/* --------------------------------------------------------------- caution */
+
+/* The one passage on the page that is a warning rather than a result. */
+.ev-caution {
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--accent-wash);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+}
+
+.ev-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.ev-links .btn { min-height: var(--tap); display: inline-flex; align-items: center; }

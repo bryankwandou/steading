@@ -126,9 +126,32 @@ function parallax() {
 
 /* ------------------------------------------------------------------- start */
 
+/**
+ * Stop the hero animating once it has scrolled away.
+ *
+ * The drift and the waveform loop for as long as the page is open, and a compositor
+ * doing that for a hero nobody is looking at is battery spent for nothing -- which
+ * matters here more than on most sites, because the reader this was built for is on a
+ * phone chosen for its price.
+ *
+ * Paused, not stopped: the cards hold their positions, so coming back does not snap
+ * them to the start of the cycle.
+ */
+function rest() {
+  const scene = document.querySelector('.scene');
+  if (!scene || !('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver(([entry]) => {
+    scene.classList.toggle('is-resting', !entry.isIntersecting);
+  }, { threshold: 0 });
+
+  observer.observe(scene);
+}
+
 if (wantsMotion.matches) {
   reveal();
   parallax();
+  rest();
 } else {
   document.querySelectorAll('.rise').forEach((el) => el.classList.add('shown'));
 }
