@@ -7,7 +7,7 @@
  * state would be actively wrong.
  */
 
-const VERSION = 'steading-hosted-ccca366282d8';
+const VERSION = 'steading-hosted-65a94fd0a6a3';
 
 const SHELL = [
   '/',
@@ -43,6 +43,9 @@ const SHELL = [
   '/js/walkthrough.js',
   '/css/walkthrough.css',
   '/css/landing.css',
+  '/css/motion.css',
+  '/js/motion.js',
+  '/sites.json',
   '/js/landing.js',
   '/js/pictures.js',
 

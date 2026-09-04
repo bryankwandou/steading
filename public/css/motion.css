@@ -1,0 +1,242 @@
+/**
+ * The motion system.
+ *
+ * The brief asks for the depth and interactivity of the shadcn/Motion.dev component
+ * libraries, and the same brief fixes the stack at pure CSS and vanilla JS with no build
+ * step, because the application has to survive being copied into Termux on a phone.
+ * Those two cannot both be satisfied by installing the libraries, so what is taken here
+ * is the vocabulary rather than the packages: scroll-linked depth, staggered entrances,
+ * fanning card stacks, pointer-tracked tilt, rolling figures. Every effect below is a
+ * few lines of CSS against a native timeline, and the whole file costs one request.
+ *
+ * Three rules hold throughout.
+ *
+ * Nothing animates that a reader asked to keep still. Every block here sits behind
+ * prefers-reduced-motion, and the page is complete and correct without any of it.
+ *
+ * Nothing animates that cannot be seen. Scroll-driven animations advance only while
+ * their subject is in view -- that is what the timeline means -- so a long page does not
+ * leave a dozen loops running against a section nobody has reached.
+ *
+ * Only transform and opacity move. Both are composited, so none of this triggers layout,
+ * which is what keeps it honest on the cheap Android phones this project exists for.
+ */
+
+/* Guard the whole file. A reader who set the system preference gets the page with no
+   motion at all rather than a reduced imitation of it. */
+@media (prefers-reduced-motion: no-preference) {
+
+  /* ===================================================== scroll-linked depth */
+
+  /* The hero cards are pinned to the scroll position rather than to a clock: they lean
+     back and separate as the page moves, and they stop the instant the reader stops.
+     A timed loop would keep moving under a still page, which reads as decoration; this
+     reads as the page responding. */
+  @supports (animation-timeline: view()) {
+    .scene .card3d {
+      animation: card-recede linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 60%;
+    }
+
+    @keyframes card-recede {
+      from { transform: translate3d(0, 26px, 0) rotateX(14deg) rotateY(-16deg) scale(.94); opacity: .55; }
+      to   { transform: translate3d(0, 0, 0) rotateX(6deg) rotateY(-8deg) scale(1); opacity: 1; }
+    }
+
+    /* Each card leaves at its own rate, so the stack separates as it goes rather than
+       sliding as one slab. */
+    .scene .card-video { animation-range: entry 15% cover 55%; }
+    .scene .card-audio { animation-range: entry 22% cover 65%; }
+    .scene .card-photo { animation-range: entry 30% cover 75%; }
+  }
+
+  /* ------------------------------------------------- sections arriving */
+
+  /* Sections rise and settle out of a slight rotation. Small numbers on purpose: a 3D
+     entrance that swings far enough to be noticed as an effect is an effect the reader
+     has to wait through every time they scroll past it. */
+  @supports (animation-timeline: view()) {
+    .section > .wrap > *,
+    .section > * {
+      animation: section-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+
+    @keyframes section-settle {
+      from { opacity: 0; transform: translate3d(0, 30px, 0) rotateX(6deg); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+
+  /* A rail down the side of the page, filled by how far the reader has come. Scroll
+     position is already a fact the browser holds; this just draws it. */
+  @supports (animation-timeline: scroll()) {
+    .scroll-rail {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 3px;
+      width: 100%;
+      transform-origin: 0 50%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      z-index: 60;
+      animation: rail-fill linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    @keyframes rail-fill {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+  }
+
+  /* ===================================================== pointer-tracked tilt */
+
+  /* The card leans towards the pointer. --mx and --my are written by motion.js as a
+     number from -1 to 1; with no script they stay 0 and the card sits flat, so this
+     degrades to a plain card rather than to a broken one. */
+  .tilt {
+    transform: perspective(900px)
+               rotateY(calc(var(--mx, 0) * 7deg))
+               rotateX(calc(var(--my, 0) * -7deg))
+               translate3d(0, 0, 0);
+    transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+    transform-style: preserve-3d;
+  }
+
+  .tilt:hover { transition-duration: .1s; }
+
+  /* A specular sheen that follows the pointer across the surface, which is what sells a
+     tilt as a physical object rather than a rotated rectangle. */
+  .tilt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s ease;
+    background: radial-gradient(
+      420px circle at calc(50% + var(--mx, 0) * 40%) calc(50% + var(--my, 0) * 40%),
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 62%
+    );
+  }
+
+  .tilt:hover::after { opacity: 1; }
+
+  /* ========================================================= the fanning stack */
+
+  /* A stack that opens as it comes into view. The cards are laid on top of one another
+     and pushed apart along the scroll, which is the one gesture from the reference
+     libraries that actually says something here: several files, one action. */
+  .fan { position: relative; perspective: 1000px; }
+
+  .fan-item {
+    transform-origin: 50% 100%;
+    transition: transform .5s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  @supports (animation-timeline: view()) {
+    .fan-item {
+      animation: fan-open linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 50%;
+    }
+
+    @keyframes fan-open {
+      from { transform: rotate(0deg) translate3d(0, 0, 0) scale(.96); }
+      to   { transform: rotate(var(--fan-angle, 0deg)) translate3d(var(--fan-x, 0), 0, 0) scale(1); }
+    }
+  }
+
+  .fan-item:nth-child(1) { --fan-angle: -7deg; --fan-x: -14%; }
+  .fan-item:nth-child(2) { --fan-angle: 0deg;  --fan-x: 0; }
+  .fan-item:nth-child(3) { --fan-angle: 7deg;  --fan-x: 14%; }
+
+  /* ============================================================== the marquee */
+
+  /* The supported-site names, moving. There are 1,752 of them and a list that long is a
+     wall; a slow band of them reads as scale without asking anyone to read it.
+     Duplicated in the markup so the loop has something to run into, and paused on hover
+     so a name can actually be read. */
+  .marquee {
+    position: relative;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .marquee-track {
+    display: flex;
+    gap: 10px;
+    width: max-content;
+    animation: marquee-run 42s linear infinite;
+  }
+
+  /* Paused when it is off screen: an infinite loop is the one shape of animation that
+     can burn a battery on a page nobody is looking at. motion.js sets is-resting. */
+  .marquee.is-resting .marquee-track { animation-play-state: paused; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+
+  @keyframes marquee-run {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+  }
+
+  /* ========================================================= rolling figures */
+
+  /* The four headline numbers count up once, when they arrive. Counting on every scroll
+     past would turn a fact into a toy. */
+  .tally { font-variant-numeric: tabular-nums; }
+
+  /* =============================================================== the seam */
+
+  /* A hairline that draws itself across the section break as it comes into view --
+     quiet, and it gives the eye a reason to keep going down the page. */
+  @supports (animation-timeline: view()) {
+    .seam {
+      transform-origin: 0 50%;
+      animation: seam-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+
+    @keyframes seam-draw {
+      from { transform: scaleX(0); opacity: 0; }
+      to   { transform: scaleX(1); opacity: 1; }
+    }
+  }
+}
+
+/* Every effect above is additive, so a reader who asked for less motion needs nothing
+   undone here -- the guard at the top is the whole of it. This block only stops the two
+   transitions that live outside it. */
+@media (prefers-reduced-motion: reduce) {
+  .tilt, .fan-item { transition: none; }
+}
+
+/* The marquee element itself is structural, so its layout lives outside the motion
+   guard -- with motion off it becomes a plain, readable row of names. */
+.marquee { padding: 4px 0; }
+
+.marquee-chip {
+  flex: none;
+  font-size: 13px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+/* Without the animation the track would run off the side, so it wraps instead. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee { -webkit-mask-image: none; mask-image: none; }
+  .marquee-track { flex-wrap: wrap; width: auto; }
+}
+
+.scroll-rail { display: block; }
