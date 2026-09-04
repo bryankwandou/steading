@@ -4,7 +4,7 @@
  * Everywhere else this site is careful to say it cannot download for you, and that is
  * still true of video: merging streams needs ffmpeg and a real filesystem, and neither
  * exists in a serverless function. Pictures are different. There is no merging, nothing
- * is transcoded, and a post of fourteen photos is a few hundred kilobytes -- so the
+ * is transcoded, and a page of photos is a few hundred kilobytes -- so the
  * server can genuinely do it, and the answer comes back as a file you keep.
  *
  * That matters most for the person this project was built for: a creator with a phone
@@ -99,6 +99,7 @@ if (el.form) {
 
       const pages = Number(res.headers.get('X-Steading-Pages')) || 0;
       const truncated = res.headers.get('X-Steading-Truncated') === '1';
+      const source = res.headers.get('X-Steading-Source') || 'page';
       const blob = await res.blob();
 
       // A blob URL rather than a data: URI: a three-megabyte data URI is a
@@ -123,12 +124,25 @@ if (el.form) {
         ? `${(blob.size / (1024 * 1024)).toFixed(1)} MB`
         : `${Math.round(blob.size / 1024)} KB`;
 
-      say(
-        truncated
-          ? `Bound the first ${pages} pictures into one PDF (${size}). The post had more than fits in one request.`
-          : `Bound ${pages} picture${pages === 1 ? '' : 's'} into one PDF (${size}).`,
-        'ok',
-      );
+      // Always the real number, and a reason whenever it is smaller than the reader
+      // expects. A one-page PDF from a fourteen-photo carousel looks like a bug unless
+      // the page says which of the two things happened: the post was thin, or the site
+      // only publishes its cover to someone who is not signed in.
+      const count = `${pages} picture${pages === 1 ? '' : 's'}`;
+      let note;
+      if (truncated) {
+        note = `Bound the first ${count} into one PDF (${size}). That page holds more than fits in one request.`;
+      } else if (source === 'oembed') {
+        note = `Bound ${count} into one PDF (${size}). This site publishes only the cover `
+          + `picture to visitors who are not signed in, so the rest of the post is out of `
+          + `reach without an account &mdash; and Steading never asks for one.`;
+      } else if (source === 'mixed') {
+        note = `Bound ${count} into one PDF (${size}). Some of the post was only available `
+          + `through its preview, so this may be fewer pictures than the post contains.`;
+      } else {
+        note = `Bound ${count} into one PDF (${size}).`;
+      }
+      say(note.replace(/&mdash;/g, '—'), 'ok');
     } catch {
       // fetch only rejects on a network fault, which on a phone usually means the
       // connection dropped rather than anything being wrong with the request.

@@ -307,18 +307,33 @@ def oembed_pictures(page_url, html=None):
     return out
 
 
+# The candidates oEmbed contributed on the last collect(). Kept so the handler can say
+# where the pictures that survived came from, which is not the same question as where the
+# candidates came from: Instagram offers 28 addresses from its own markup and every one
+# of them fails, while the single usable picture comes from oEmbed. Reporting "page"
+# there would be true of the candidates and false of the result.
+_OEMBED_URLS = set()
+
+
 def collect(page_url, limit):
     """Candidate picture URLs from a page, in the order the page most likely meant."""
+    # A page that cannot be read is not the end of the attempt. This used to return here,
+    # which got the priority exactly backwards: a page the server is refused is precisely
+    # the case oEmbed exists for, and Instagram refuses this fetch intermittently -- two
+    # runs a minute apart, one returning a megabyte of HTML and the other nothing at all.
+    # The early return meant the same link succeeded or failed at random.
+    html = None
     html_bytes, ctype = _get(page_url, 20, "text/html,application/xhtml+xml", MAX_HTML_BYTES)
-    if not html_bytes or "html" not in (ctype or ""):
-        return []
-    html = html_bytes.decode("utf-8", "replace")
+    if html_bytes and "html" in (ctype or ""):
+        html = html_bytes.decode("utf-8", "replace")
 
     # Meta and JSON-LD are what the page nominated for itself; <img> is a guess, so it
     # goes last and only its non-junk entries count.
-    candidates = _from_meta(html) + _from_jsonld(html) + [
-        u for u in _from_img(html) if not JUNK.search(u)
-    ]
+    candidates = []
+    if html:
+        candidates = _from_meta(html) + _from_jsonld(html) + [
+            u for u in _from_img(html) if not JUNK.search(u)
+        ]
 
     # oEmbed last, and always -- not only when the page yielded nothing.
     #
@@ -327,7 +342,15 @@ def collect(page_url, limit):
     # interface furniture that fails to fetch as a picture. A page can produce plenty of
     # candidates and still produce no pictures, so the extra source is appended rather
     # than held in reserve, and costs one request only when the ones above it fall away.
-    candidates += oembed_pictures(page_url, html)
+    from_oembed = oembed_pictures(page_url, html)
+    candidates += from_oembed
+
+    _OEMBED_URLS.clear()
+    for u in from_oembed:
+        try:
+            _OEMBED_URLS.add(urllib.parse.urljoin(page_url, u))
+        except ValueError:
+            pass
 
     seen, out = set(), []
     for raw in candidates:
@@ -480,7 +503,7 @@ class handler(BaseHTTPRequestHandler):
         if not urls:
             return self._json(422, {"code": "no_image"})
 
-        pages, total, truncated = [], 0, False
+        pages, kept_urls, total, truncated = [], [], 0, False
         for url in urls:
             if len(pages) >= MAX_PAGES:
                 truncated = True
@@ -503,6 +526,7 @@ class handler(BaseHTTPRequestHandler):
                 break
 
             pages.append(data)
+            kept_urls.append(url)
             total += len(data)
 
         if not pages:
@@ -524,6 +548,19 @@ class handler(BaseHTTPRequestHandler):
         # to count the pages and wonder whether something went missing.
         self.send_header("X-Steading-Pages", str(len(pages)))
         self.send_header("X-Steading-Truncated", "1" if truncated else "0")
+        # Judged on what survived, not on what was offered. "oembed" tells the page it
+        # is holding the post's cover because the site published nothing else to a
+        # reader who is not signed in -- a thin result with a reason, not a failure.
+        from_oembed = sum(1 for u in kept_urls if u in _OEMBED_URLS)
+        if not kept_urls:
+            source = "none"
+        elif from_oembed == len(kept_urls):
+            source = "oembed"
+        elif from_oembed:
+            source = "mixed"
+        else:
+            source = "page"
+        self.send_header("X-Steading-Source", source)
         self.end_headers()
         self.wfile.write(pdf)
 
