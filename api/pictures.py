@@ -225,6 +225,88 @@ def _from_img(html):
     return out
 
 
+# ------------------------------------------------------------------- oembed
+
+# Sites whose oEmbed endpoint has to be known in advance because their pages do not
+# advertise one. Kept deliberately short: the discovery path below covers everything that
+# follows the standard, and a hard-coded table is a maintenance debt that grows quietly.
+OEMBED_ENDPOINTS = (
+    (re.compile(r"^https?://(www\.)?instagram\.com/(p|reel|tv)/", re.I),
+     "https://www.instagram.com/api/v1/oembed/?url="),
+    (re.compile(r"^https?://(www\.)?(twitter|x)\.com/\w+/status/", re.I),
+     "https://publish.twitter.com/oembed?url="),
+    (re.compile(r"^https?://(www\.)?flickr\.com/photos/", re.I),
+     "https://www.flickr.com/services/oembed/?format=json&url="),
+    (re.compile(r"^https?://(www\.)?(tiktok)\.com/@", re.I),
+     "https://www.tiktok.com/oembed?url="),
+)
+
+
+def _oembed_endpoint(page_url, html):
+    """Where this page's oEmbed document lives, or None.
+
+    Discovery first, because it is the standard and needs no list kept up to date: a page
+    that follows the spec names its own endpoint in a <link> tag, and one implementation
+    then covers every site that does so. The table above is only for the handful of large
+    sites that do not.
+    """
+    if html:
+        for tag in re.findall(r"<link\b[^>]*>", html, re.I):
+            rel = (_attr(tag, "rel") or "").lower()
+            typ = (_attr(tag, "type") or "").lower()
+            if "alternate" in rel and "json+oembed" in typ:
+                href = _attr(tag, "href")
+                if href:
+                    return urllib.parse.urljoin(page_url, href)
+
+    for pattern, prefix in OEMBED_ENDPOINTS:
+        if pattern.search(page_url):
+            return prefix + urllib.parse.quote(page_url, safe="")
+    return None
+
+
+def oembed_pictures(page_url, html=None):
+    """Pictures a page publishes through oEmbed.
+
+    This is the link that reaches the places a scraper cannot. Instagram builds its post
+    pages in the browser and serves an empty shell to anyone not signed in -- measured at
+    616 KB containing no og:image, no .jpg address and a single <img> tag -- so reading
+    the HTML finds genuinely nothing. The same post's oEmbed document is 9 KB of plain
+    JSON with the caption, the author and a working image address in it.
+
+    Honest about its limit: oEmbed returns the one representative picture, so a carousel
+    of fourteen photos comes back as its cover. One picture is worth having; claiming it
+    is the whole post would not be.
+    """
+    endpoint = _oembed_endpoint(page_url, html)
+    if not endpoint:
+        return []
+
+    body, ctype = _get(endpoint, 15, "application/json", 512 * 1024)
+    if not body:
+        return []
+    # Some endpoints answer with text/plain; the parse is the real check.
+    try:
+        data = json.loads(body.decode("utf-8", "replace"))
+    except (ValueError, UnicodeDecodeError):
+        return []
+
+    out = []
+    thumb = data.get("thumbnail_url")
+    if isinstance(thumb, str) and thumb.startswith(("http://", "https://")):
+        out.append(thumb)
+
+    # A few providers put the picture only inside the embed markup they hand back.
+    markup = data.get("html")
+    if isinstance(markup, str):
+        for tag in re.findall(r"<img\b[^>]*>", markup, re.I):
+            src = _attr(tag, "src")
+            if src and src.startswith(("http://", "https://")) and src not in out:
+                out.append(src)
+
+    return out
+
+
 def collect(page_url, limit):
     """Candidate picture URLs from a page, in the order the page most likely meant."""
     html_bytes, ctype = _get(page_url, 20, "text/html,application/xhtml+xml", MAX_HTML_BYTES)
@@ -237,6 +319,15 @@ def collect(page_url, limit):
     candidates = _from_meta(html) + _from_jsonld(html) + [
         u for u in _from_img(html) if not JUNK.search(u)
     ]
+
+    # oEmbed last, and always -- not only when the page yielded nothing.
+    #
+    # The first version of this ran oEmbed only if the page produced no candidates at
+    # all, which never fired: Instagram's shell yields 28 addresses, every one of them
+    # interface furniture that fails to fetch as a picture. A page can produce plenty of
+    # candidates and still produce no pictures, so the extra source is appended rather
+    # than held in reserve, and costs one request only when the ones above it fall away.
+    candidates += oembed_pictures(page_url, html)
 
     seen, out = set(), []
     for raw in candidates:
