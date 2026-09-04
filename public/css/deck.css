@@ -1,0 +1,260 @@
+/**
+ * The presentation.
+ *
+ * One slide fills the window; the others are kept in the document rather than removed,
+ * so the whole deck is still one readable page to a screen reader, to a search, and to
+ * anyone who prints it. That last one matters here: a panel that wants this on paper
+ * should get nine clean pages, not one slide and eight blanks.
+ *
+ * Type is set large enough to read from across a room -- the Kawasaki rule, which is
+ * really just the observation that a slide nobody can read is a slide nobody reads.
+ */
+
+.deck-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;              /* the deck pages; the document does not scroll */
+}
+
+.deck { position: relative; height: 100vh; }
+
+/* Every slide occupies the same box. Kept in the flow with visibility rather than
+   display:none so the print stylesheet can put them all back without a reflow. */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vw, 72px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .32s var(--ease-out), visibility .32s;
+}
+
+.slide.is-on { opacity: 1; visibility: visible; }
+
+.slide-inner {
+  width: min(1040px, 100%);
+  max-height: 100%;
+  overflow-y: auto;              /* a dense slide scrolls itself, not the deck */
+}
+
+/* ------------------------------------------------------------------ type */
+
+.slide-kicker {
+  margin: 0 0 12px;
+  font-size: clamp(12px, 1.4vw, 14px);
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.slide h1 {
+  margin: 0 0 18px;
+  font-size: clamp(40px, 8vw, 82px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+.slide h2 {
+  margin: 0 0 20px;
+  font-size: clamp(26px, 4.4vw, 46px);
+  line-height: 1.14;
+  letter-spacing: -0.028em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.slide p {
+  font-size: clamp(15px, 1.7vw, 19px);
+  line-height: 1.62;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  max-width: 62ch;
+}
+
+.slide-lede { font-size: clamp(16px, 2vw, 22px) !important; color: var(--ink-soft); }
+
+.slide-note {
+  font-size: clamp(13px, 1.4vw, 15px) !important;
+  color: var(--ink-faint);
+  padding-left: 14px;
+  border-left: 2px solid var(--line-strong);
+}
+
+.slide-meta { font-size: 15px !important; color: var(--ink-faint); }
+.slide-meta a { color: var(--accent-text); }
+
+/* ------------------------------------------------------------- title slide */
+
+.slide-title { text-align: left; }
+.deck-mark { width: clamp(52px, 7vw, 76px); height: auto; margin-bottom: 22px; display: block; }
+
+/* ---------------------------------------------------------------- layout */
+
+.slide-cols { display: grid; gap: clamp(20px, 3vw, 40px); }
+@media (min-width: 860px) { .slide-cols { grid-template-columns: 1.15fr 1fr; } }
+
+.slide-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; align-content: start; }
+
+.slide-list li {
+  font-size: clamp(14px, 1.6vw, 17px);
+  line-height: 1.55;
+  color: var(--ink-soft);
+  padding: 12px 15px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+.slide-list.warn li { border-left: 3px solid var(--accent); }
+.slide-list strong { color: var(--ink); }
+
+.slide-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 13px; }
+.slide-steps li { font-size: clamp(14px, 1.6vw, 17px); line-height: 1.6; color: var(--ink-soft); }
+.slide-steps strong { color: var(--ink); }
+
+/* --------------------------------------------------------------- metrics */
+
+.slide-metrics { display: grid; gap: 16px; margin: 26px 0; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.slide-metrics.wide { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+.metric {
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+.metric-n {
+  display: block;
+  font-size: clamp(30px, 4.6vw, 46px);
+  font-weight: 680;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-l { display: block; margin-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--ink-faint); }
+
+/* ----------------------------------------------------------------- table */
+
+.slide-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: clamp(13px, 1.5vw, 16px); }
+
+.slide-table th,
+.slide-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); line-height: 1.5; }
+.slide-table th { width: 34%; font-weight: 600; color: var(--ink); }
+.slide-table td { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .slide-table th, .slide-table td { display: block; width: auto; }
+  .slide-table th { border-bottom: none; padding-bottom: 2px; }
+}
+
+/* ----------------------------------------------------------------- chain */
+
+.slide-chain { display: grid; gap: 12px; margin: 24px 0; }
+@media (min-width: 860px) { .slide-chain { grid-template-columns: repeat(3, 1fr); } }
+
+.chain-item {
+  padding: 18px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.chain-n {
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  font-size: 13px; font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.chain-item strong { font-size: 16px; color: var(--ink); }
+.chain-item span:last-child { font-size: 13.5px; line-height: 1.5; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- end */
+
+.slide-links { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+.slide-links a.btn { min-height: var(--tap); display: inline-flex; align-items: center; text-decoration: none; }
+
+.slide-cmd {
+  margin: 18px 0;
+  padding: 15px 17px;
+  overflow-x: auto;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.slide-cmd code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; line-height: 1.7; white-space: pre; color: var(--ink);
+}
+
+.slide code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em; padding: 1px 5px; border-radius: 4px;
+  background: var(--surface-sunken); border: 1px solid var(--line);
+}
+
+/* -------------------------------------------------------------- controls */
+
+.deck-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px clamp(16px, 4vw, 40px);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+
+.deck-bar .btn { min-width: var(--tap); min-height: var(--tap); }
+.deck-count { margin: 0; font-size: 14px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.deck-hint { margin-left: auto; font-size: 12.5px; color: var(--ink-faint); }
+
+@media (max-width: 560px) { .deck-hint { display: none; } }
+
+/* ----------------------------------------------------------------- print */
+
+/* Nine pages, one slide each. A panel that prints this should get the deck, not the
+   slide that happened to be showing. */
+@media print {
+  .deck-bar { display: none; }
+  .deck-body { overflow: visible; }
+  .deck { height: auto; }
+
+  .slide {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    min-height: auto;
+    page-break-after: always;
+    break-after: page;
+    padding: 20mm 18mm;
+    display: block;
+  }
+
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+  .slide h1 { font-size: 34pt; }
+  .slide h2 { font-size: 22pt; }
+  .slide p, .slide-list li, .slide-steps li { font-size: 11pt; }
+  .metric-n { font-size: 24pt; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide { transition: none; }
+}

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading — presentation</title>
+<meta name="description" content="Steading in nine slides: what it does, why it runs on your own machine, and the measured evidence behind every figure.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/deck.css">
+</head>
+<body class="deck-body">
+
+<!--
+  Nine slides, keyboard-driven, and printable.
+
+  Built as a page rather than a slide file for the same reason the walkthrough was: a
+  PDF of slides cannot be checked. Every figure here is a link or a command away from
+  its own proof, and a reader who doubts one can go and take it again.
+
+  The audience is a panel deciding whether this is real, not investors deciding whether
+  to fund it. So there is no market size, no raise, and no roadmap of promises -- there
+  is what it does, what was measured, and what is still missing. Slide 7 is the one that
+  matters most: a submission that lists its own gaps is worth more than one that hides
+  them, because the panel will find them either way.
+-->
+
+<div class="deck" id="deck">
+
+  <!-- 1 ---------------------------------------------------------------- -->
+  <section class="slide slide-title is-on" data-n="1">
+    <div class="slide-inner">
+      <svg class="deck-mark" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+          <linearGradient id="d-wall" x1="10" y1="8" x2="38" y2="42" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#4E92FF"/><stop offset="1" stop-color="#0D3E96"/>
+          </linearGradient>
+          <linearGradient id="d-yard" x1="24" y1="16" x2="24" y2="38" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#1B6EF3"/><stop offset="1" stop-color="#1558C8"/>
+          </linearGradient>
+        </defs>
+        <path d="M21 8.6h-6.4A6 6 0 0 0 8.6 14.6v18.8a6 6 0 0 0 6 6h6.4" fill="none" stroke="url(#d-wall)" stroke-width="3.6" stroke-linecap="round"/>
+        <path d="M27 8.6h6.4a6 6 0 0 1 6 6v18.8a6 6 0 0 1-6 6H27" fill="none" stroke="url(#d-wall)" stroke-width="3.6" stroke-linecap="round"/>
+        <path d="M18.4 16.6h4.1l1.5 2.2 1.5-2.2h4.1a3 3 0 0 1 3 3v10.6a3 3 0 0 1-3 3H18.4a3 3 0 0 1-3-3V19.6a3 3 0 0 1 3-3Z" fill="url(#d-yard)"/>
+        <path d="M19.6 28.4h8.8v2.6h-8.8z" fill="#fff" opacity=".9"/>
+      </svg>
+
+      <h1>Steading</h1>
+      <p class="slide-lede">
+        Save video, audio and photographs from the web onto your own machine.
+        The program runs on your computer, so no file and no link is ever handed
+        to a third party.
+      </p>
+      <p class="slide-meta">
+        <a href="/">steading.vercel.app</a> &middot; 1,752 sites &middot; 12 formats &middot; 24 languages
+      </p>
+    </div>
+  </section>
+
+  <!-- 2 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="2">
+    <div class="slide-inner">
+      <p class="slide-kicker">The problem</p>
+      <h2>Every other downloader takes your file somewhere first.</h2>
+      <div class="slide-cols">
+        <div>
+          <p>
+            A site that fetches on your behalf must, for a moment, hold the thing you
+            asked for. It sees the link, it sees the file, and it sees you. That moment is
+            not visible from the page, and there is no way for you to check what happens
+            in it.
+          </p>
+          <p>
+            For most people that is a nuisance. For a journalist saving evidence, a
+            student keeping coursework, or anyone in a place where the wrong link is
+            dangerous, it is the whole problem.
+          </p>
+        </div>
+        <ul class="slide-list">
+          <li>Your link is read by a stranger's server</li>
+          <li>Your file passes through it</li>
+          <li>An account is usually required</li>
+          <li>A queue, a limit, an upgrade prompt</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="3">
+    <div class="slide-inner">
+      <p class="slide-kicker">The solution</p>
+      <h2>Remove the middle step by removing the middle.</h2>
+      <p class="slide-lede">
+        The program runs on your own computer. The file is written straight to your disk
+        by software you control, so there is no moment when anyone else is holding it.
+      </p>
+      <div class="slide-metrics">
+        <div class="metric"><span class="metric-n">0</span><span class="metric-l">bytes sent to anyone else</span></div>
+        <div class="metric"><span class="metric-n">0</span><span class="metric-l">accounts required</span></div>
+        <div class="metric"><span class="metric-n">0</span><span class="metric-l">npm runtime dependencies</span></div>
+      </div>
+      <p class="slide-note">
+        The last figure is not a boast about tidiness. Zero dependencies is what makes the
+        privacy claim checkable: there is no third-party package that could be sending
+        anything, so the claim can be verified by reading the code rather than trusted.
+      </p>
+    </div>
+  </section>
+
+  <!-- 4 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="4">
+    <div class="slide-inner">
+      <p class="slide-kicker">How it works</p>
+      <h2>Paste a link. Choose what to keep. It writes to your disk.</h2>
+      <ol class="slide-steps">
+        <li><strong>Look first.</strong> The link is read to find what is actually there — length, available heights, whether a video track exists. No bytes are downloaded yet.</li>
+        <li><strong>Choose the kind.</strong> Video, audio or photo. Anything the post cannot provide is disabled rather than left to fail when pressed.</li>
+        <li><strong>Choose the shape.</strong> Twelve formats, and for photographs a five-step slider trading size against fidelity.</li>
+        <li><strong>It is yours.</strong> An ordinary file in an ordinary folder, which still opens when this page is gone.</li>
+      </ol>
+      <p class="slide-meta"><a href="/walkthrough">The full walkthrough, step by step &rarr;</a></p>
+    </div>
+  </section>
+
+  <!-- 5 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="5">
+    <div class="slide-inner">
+      <p class="slide-kicker">Proof, not description</p>
+      <h2>Every figure came from running it.</h2>
+      <table class="slide-table">
+        <tbody>
+          <tr><th>Photographs, on the site</th><td>200 OK &middot; 18-page PDF &middot; 3,084,473 bytes &middot; ~8.4&nbsp;s</td></tr>
+          <tr><th>The same page, as an archive</th><td>15 files &middot; 13 JPG and 2 PNG the PDF cannot carry</td></tr>
+          <tr><th>An Instagram post</th><td>200 OK &middot; 1 page &middot; source reported as <code>oembed</code></td></tr>
+          <tr><th>Address guard, in production</th><td><code>127.0.0.1</code> and <code>169.254.169.254</code> both refused</td></tr>
+          <tr><th>Tests</th><td>69 passing, 0 failing</td></tr>
+          <tr><th>Contrast</th><td>18.22:1 &middot; 6.08:1 &middot; 5.03:1 — all pass WCAG AA</td></tr>
+          <tr><th>Layout at 390&nbsp;px</th><td>0&nbsp;px horizontal overflow, nothing past either edge</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="6">
+    <div class="slide-inner">
+      <p class="slide-kicker">Not one source</p>
+      <h2>Three independent ways to find a file.</h2>
+      <p class="slide-lede">
+        An auditor recorded the single-source dependency as a high risk and was right.
+        The remedy is a chain of independent sources, none of them required — not
+        hundreds of per-site packages, which would trade one well-tested source for many
+        unmaintained ones.
+      </p>
+      <div class="slide-chain">
+        <div class="chain-item"><span class="chain-n">1</span><strong>yt-dlp</strong><span>≈1,750 per-site extractors under one test suite</span></div>
+        <div class="chain-item"><span class="chain-n">2</span><strong>streamlink</strong><span>A separate project, so it fails on a different set of sites</span></div>
+        <div class="chain-item"><span class="chain-n">3</span><strong>the page itself</strong><span>No binary, no package. Cannot be uninstalled.</span></div>
+      </div>
+      <p class="slide-note">
+        Proved with the primary source switched off: <code>VIDEO_PROVIDERS=scrape</code>
+        returns <code>extractor: page</code> on pages yt-dlp rejects outright.
+      </p>
+    </div>
+  </section>
+
+  <!-- 7 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="7">
+    <div class="slide-inner">
+      <p class="slide-kicker">What it does not do</p>
+      <h2>The limits, stated rather than found.</h2>
+      <div class="slide-cols">
+        <ul class="slide-list warn">
+          <li><strong>Instagram carousels.</strong> A fourteen-photo post returns its cover. The rest needs a signed-in session, and this program never asks for an account.</li>
+          <li><strong>Video and audio on the website.</strong> Merging streams needs ffmpeg and a seekable disk, which a hosted function has neither of. Those run on your machine.</li>
+          <li><strong>Three sites were dropped.</strong> Douyin needs cookies, Rumble returned 403 to every probe, Vidio's segments 404. The list says 22, not 25.</li>
+        </ul>
+        <div>
+          <p class="slide-note">
+            This slide exists because a panel will find these anyway. A submission that
+            lists its own gaps can be checked; one that hides them only has to be caught
+            once.
+          </p>
+          <p class="slide-note">
+            The interface says the same thing in place: a one-picture result explains that
+            the site publishes only its cover to visitors who are not signed in, rather
+            than leaving a thin answer looking like a fault.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 ---------------------------------------------------------------- -->
+  <section class="slide" data-n="8">
+    <div class="slide-inner">
+      <p class="slide-kicker">Reach</p>
+      <h2>Built for the phone someone actually has.</h2>
+      <div class="slide-metrics wide">
+        <div class="metric"><span class="metric-n">1,752</span><span class="metric-l">sites, read from the installed binary rather than typed</span></div>
+        <div class="metric"><span class="metric-n">12</span><span class="metric-l">formats across video, audio, photo and PDF</span></div>
+        <div class="metric"><span class="metric-n">24</span><span class="metric-l">languages, right-to-left included</span></div>
+        <div class="metric"><span class="metric-n">22</span><span class="metric-l">platforms checked against a live address</span></div>
+      </div>
+      <p class="slide-note">
+        Zero dependencies is also why it installs on a phone: <code>npm install</code> in
+        Termux is slow and fragile, and a folder that runs with <code>node server/index.js</code>
+        does not need it. The application shell is a few tens of kilobytes and works offline
+        once loaded.
+      </p>
+    </div>
+  </section>
+
+  <!-- 9 ---------------------------------------------------------------- -->
+  <section class="slide slide-end" data-n="9">
+    <div class="slide-inner">
+      <p class="slide-kicker">Check it yourself</p>
+      <h2>Nothing here has to be taken on trust.</h2>
+      <div class="slide-links">
+        <a class="btn btn-primary" href="/">Use it now</a>
+        <a class="btn btn-quiet" href="/walkthrough">Walkthrough</a>
+        <a class="btn btn-quiet" href="https://bryankwandou.github.io/steading/">Engineering record</a>
+      </div>
+      <pre class="slide-cmd"><code>curl -s -D - -o out.pdf -X POST https://steading.vercel.app/api/pictures \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://en.wikipedia.org/wiki/Lighthouse"}'</code></pre>
+      <p class="slide-note">
+        Every figure in this deck can be taken again. The engineering record carries the
+        command beside each one.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<!-- Controls sit outside the slides so they never move between them. -->
+<div class="deck-bar">
+  <button type="button" id="deck-prev" class="btn btn-quiet" aria-label="Previous slide">&lsaquo;</button>
+  <p class="deck-count" id="deck-count" role="status">1 / 9</p>
+  <button type="button" id="deck-next" class="btn btn-quiet" aria-label="Next slide">&rsaquo;</button>
+  <span class="deck-hint">Arrow keys, or space</span>
+</div>
+
+<script type="module" src="/js/deck.js"></script>
+</body>
+</html>
