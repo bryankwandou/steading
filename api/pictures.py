@@ -30,6 +30,8 @@ are embedded verbatim through DCTDecode, so no pixel is decoded and no library h
 installed, audited, or kept up to date.
 """
 
+import io
+import zipfile
 import json
 import re
 import socket
@@ -315,6 +317,42 @@ def oembed_pictures(page_url, html=None):
 _OEMBED_URLS = set()
 
 
+def _picture_kind(data, ctype):
+    """What this actually is, judged on its bytes rather than on what the server said.
+
+    A content-type header is a claim; the magic number is the file. Sites mislabel
+    pictures often enough that trusting the header would put a mislabelled thing straight
+    into someone's download.
+    """
+    if data[:3] == b"\xff\xd8\xff":
+        return "jpg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "webp"
+    return None
+
+
+def images_to_zip(images, kinds, stem):
+    """The pictures as they came off the wire, in one archive.
+
+    Written with the standard library's zipfile, so this adds no dependency -- the same
+    rule the rest of the project keeps.
+
+    Stored rather than deflated: JPEG, PNG and WebP are already compressed, so deflating
+    them would spend the function's time budget to save almost nothing.
+
+    Numbered with a fixed width so the order the post used survives an alphabetical
+    listing, which is what every file manager shows by default.
+    """
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_STORED) as archive:
+        width = max(2, len(str(len(images))))
+        for index, (data, kind) in enumerate(zip(images, kinds), start=1):
+            archive.writestr("%s-%0*d.%s" % (stem, width, index, kind), data)
+    return buffer.getvalue()
+
+
 def collect(page_url, limit):
     """Candidate picture URLs from a page, in the order the page most likely meant."""
     # A page that cannot be read is not the end of the attempt. This used to return here,
@@ -493,7 +531,11 @@ class handler(BaseHTTPRequestHandler):
         try:
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
             page_url = str(payload.get("url") or "").strip()
+            want = str(payload.get("format") or "pdf").strip().lower()
         except (ValueError, UnicodeDecodeError):
+            return self._json(400, {"code": "bad_request"})
+
+        if want not in ("pdf", "zip"):
             return self._json(400, {"code": "bad_request"})
 
         if not _fetchable(page_url):
@@ -503,7 +545,7 @@ class handler(BaseHTTPRequestHandler):
         if not urls:
             return self._json(422, {"code": "no_image"})
 
-        pages, kept_urls, total, truncated = [], [], 0, False
+        pages, kept_urls, kinds, total, truncated = [], [], [], 0, False
         for url in urls:
             if len(pages) >= MAX_PAGES:
                 truncated = True
@@ -517,9 +559,15 @@ class handler(BaseHTTPRequestHandler):
             data, ctype = _get(url, 12, "image/*", MAX_IMAGE_BYTES)
             if not data or len(data) < MIN_IMAGE_BYTES:
                 continue
-            # Only JPEG can be embedded verbatim, and there is no encoder here. A PNG is
-            # skipped rather than mangled -- the local app converts those.
-            if not (ctype == "image/jpeg" and data[:3] == b"\xff\xd8\xff"):
+
+            kind = _picture_kind(data, ctype)
+            if not kind:
+                continue
+            # A PDF can only carry JPEG verbatim and there is no encoder here, so PNG and
+            # WebP have to be dropped from that format. A zip carries the file as it came
+            # off the wire, so those same pictures survive -- which is most of the reason
+            # the zip is worth offering at all.
+            if want == "pdf" and kind != "jpg":
                 continue
             if total + len(data) > MAX_TOTAL_BYTES:
                 truncated = True
@@ -527,27 +575,37 @@ class handler(BaseHTTPRequestHandler):
 
             pages.append(data)
             kept_urls.append(url)
+            kinds.append(kind)
             total += len(data)
 
         if not pages:
             return self._json(422, {"code": "no_image"})
 
-        pdf = images_to_pdf(pages)
-        if not pdf:
-            return self._json(422, {"code": "no_image"})
-
         name = (urllib.parse.urlparse(page_url).path.rstrip("/").split("/") or ["post"])[-1]
         name = re.sub(r"[^A-Za-z0-9._-]", "_", urllib.parse.unquote(name))[:60] or "post"
 
+        if want == "zip":
+            body = images_to_zip(pages, kinds, name)
+            ctype_out, ext = "application/zip", "zip"
+        else:
+            body = images_to_pdf(pages)
+            ctype_out, ext = "application/pdf", "pdf"
+
+        if not body:
+            return self._json(422, {"code": "no_image"})
+
         self.send_response(200)
-        self.send_header("Content-Type", "application/pdf")
-        self.send_header("Content-Length", str(len(pdf)))
-        self.send_header("Content-Disposition", 'attachment; filename="%s.pdf"' % name)
+        self.send_header("Content-Type", ctype_out)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Disposition", 'attachment; filename="%s.%s"' % (name, ext))
         self.send_header("Cache-Control", "no-store")
         # So the page can tell the reader what it actually got, rather than leaving them
         # to count the pages and wonder whether something went missing.
         self.send_header("X-Steading-Pages", str(len(pages)))
         self.send_header("X-Steading-Truncated", "1" if truncated else "0")
+        # What is actually inside, so a reader choosing the zip is told it holds jpgs and
+        # pngs rather than having to open it to find out.
+        self.send_header("X-Steading-Kinds", ",".join(sorted(set(kinds))))
         # Judged on what survived, not on what was offered. "oembed" tells the page it
         # is holding the post's cover because the site published nothing else to a
         # reader who is not signed in -- a thin result with a reason, not a failure.
@@ -562,7 +620,7 @@ class handler(BaseHTTPRequestHandler):
             source = "page"
         self.send_header("X-Steading-Source", source)
         self.end_headers()
-        self.wfile.write(pdf)
+        self.wfile.write(body)
 
     def do_GET(self):
         self._json(405, {"code": "method_not_allowed"})

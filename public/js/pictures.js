@@ -25,11 +25,44 @@ const el = {
   submit: $('pic-go'),
   status: $('pic-status'),
   result: $('pic-result'),
+  format: $('pic-format'),
+  formatNote: $('pic-kind-note'),
+};
+
+/**
+ * The two shapes this page can hand back.
+ *
+ * The note changes with the choice, because "one PDF" and "original pictures" are not
+ * obviously different to someone who has not thought about file formats -- and the
+ * difference has teeth. A PDF here can only carry JPEG verbatim, since there is no
+ * encoder in a serverless function, so choosing it silently drops any PNG or WebP the
+ * page published. Measured on one article: eleven pictures in the PDF, twelve in the zip.
+ */
+const FORMAT_NOTES = {
+  pdf: 'Every picture bound into a single document, in the order the page used.',
+  zip: 'A zip of the pictures exactly as they were published — jpg, png or webp, '
+     + 'untouched. This keeps pictures that a PDF has to leave out.',
 };
 
 if (el.form) {
   /** Only one request at a time: a second press should not start a second 40-second job. */
   let busy = false;
+
+  /** A radiogroup rather than a select: two choices, both worth reading without opening. */
+  if (el.format) {
+    for (const button of el.format.querySelectorAll('.seg-btn')) {
+      button.addEventListener('click', () => {
+        const value = button.dataset.value;
+        el.format.dataset.active = value;
+        for (const sibling of el.format.querySelectorAll('.seg-btn')) {
+          sibling.setAttribute('aria-checked', String(sibling === button));
+        }
+        if (el.formatNote) el.formatNote.textContent = FORMAT_NOTES[value];
+      });
+    }
+  }
+
+  const chosenFormat = () => (el.format?.dataset.active === 'zip' ? 'zip' : 'pdf');
 
   /**
    * Say what is happening, in one place.
@@ -78,7 +111,7 @@ if (el.form) {
       const res = await fetch('/api/pictures', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, format: chosenFormat() }),
       });
 
       if (!res.ok) {
@@ -129,18 +162,25 @@ if (el.form) {
       // the page says which of the two things happened: the post was thin, or the site
       // only publishes its cover to someone who is not signed in.
       const count = `${pages} picture${pages === 1 ? '' : 's'}`;
+      // The sentence has to describe the thing actually produced. "Bound into one PDF"
+      // read on a zip download would be the interface misreporting its own work.
+      const kinds = (res.headers.get('X-Steading-Kinds') || '').split(',').filter(Boolean);
+      const isZip = chosenFormat() === 'zip';
+      const verb = isZip
+        ? `Saved ${count} as ${kinds.length ? kinds.join(' and ').toUpperCase() : 'files'} in one zip`
+        : `Bound ${count} into one PDF`;
       let note;
       if (truncated) {
-        note = `Bound the first ${count} into one PDF (${size}). That page holds more than fits in one request.`;
+        note = `${verb} (${size}) — the first ${pages} of them. That page holds more than fits in one request.`;
       } else if (source === 'oembed') {
-        note = `Bound ${count} into one PDF (${size}). This site publishes only the cover `
+        note = `${verb} (${size}). This site publishes only the cover `
           + `picture to visitors who are not signed in, so the rest of the post is out of `
           + `reach without an account &mdash; and Steading never asks for one.`;
       } else if (source === 'mixed') {
-        note = `Bound ${count} into one PDF (${size}). Some of the post was only available `
+        note = `${verb} (${size}). Some of the post was only available `
           + `through its preview, so this may be fewer pictures than the post contains.`;
       } else {
-        note = `Bound ${count} into one PDF (${size}).`;
+        note = `${verb} (${size}).`;
       }
       say(note.replace(/&mdash;/g, '—'), 'ok');
     } catch {

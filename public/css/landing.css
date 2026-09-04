@@ -553,3 +553,37 @@
 .scene.is-resting .wave i {
   animation-play-state: paused;
 }
+
+/* A button that is an <a> is still a button.
+   
+   The base stylesheet underlines links, which is right for links in prose and wrong for
+   a control with a border and a filled background around it: "Download for Windows" and
+   "See how it works" were rendering underlined on the landing, the walkthrough and the
+   404 page. The underline is removed where the element is a button; it stays everywhere
+   an anchor is genuinely a link, because that is how a link says it is one. */
+a.btn, a.btn:hover, a.btn:focus { text-decoration: none; }
+
+/* ------------------------------------------------- what shape you get back */
+
+/* A fieldset, because these two controls are one question and a screen reader should
+   hear the question before the answers. The browser's default border and padding are
+   removed: the grouping is semantic, and a box drawn around it would add furniture the
+   rest of this form does not have. */
+.pic-kind {
+  margin: 14px 0 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;   /* a fieldset will not shrink below its content without this */
+}
+
+.pic-kind > .label { padding: 0; margin-bottom: 7px; display: block; }
+
+.pic-kind .seg { max-width: 420px; }
+
+.pic-kind-note {
+  margin: 9px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  max-width: 54ch;
+}

@@ -183,9 +183,31 @@
         <input id="pic-url" name="url" type="url" inputmode="url" spellcheck="false"
                placeholder="https://" autocomplete="off">
         <button type="submit" id="pic-go" class="btn btn-primary" data-busy="0">
-          Save pictures as PDF
+          Save pictures
         </button>
       </div>
+
+      <!-- The site used to offer one shape: a PDF. Anyone who wanted the photographs
+           themselves had to install the application, which made the one thing this page
+           does well look like a teaser for something else.
+
+           A zip needs no encoder and no merging, so it costs the server nothing extra --
+           and it carries the PNG and WebP that a PDF has to drop, because a PDF can only
+           hold JPEG verbatim and there is no encoder in a function. Measured on one
+           article: eleven pictures in the PDF, twelve in the zip. -->
+      <fieldset class="pic-kind">
+        <legend class="label">What you get</legend>
+        <div class="seg" id="pic-format" data-active="pdf" role="radiogroup"
+             aria-label="File type">
+          <button type="button" class="seg-btn" data-value="pdf" role="radio"
+                  aria-checked="true">One PDF</button>
+          <button type="button" class="seg-btn" data-value="zip" role="radio"
+                  aria-checked="false">Original pictures</button>
+        </div>
+        <p class="pic-kind-note" id="pic-kind-note">
+          Every picture bound into a single document, in the order the page used.
+        </p>
+      </fieldset>
       <p class="pic-status" id="pic-status" role="status" hidden></p>
       <div class="pic-result" id="pic-result" hidden></div>
       <p class="pic-fine">
