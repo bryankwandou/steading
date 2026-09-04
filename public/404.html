@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Steading — page not found</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<script src="/js/boot-theme.js"></script>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/landing.css">
+<style>
+/*
+ * A wrong address used to hand people the hosting company's raw error page: an
+ * unstyled box reading NOT_FOUND with a deployment id in it. To anyone who mistyped a
+ * link or followed an old bookmark, that reads as the whole service being down, and it
+ * carries no way back. For a product meant for half a million people, one typo should
+ * not look like a collapse.
+ *
+ * So this says the one true thing -- that address is not here -- and puts the way back
+ * in reach. It is deliberately quiet: nothing is wrong with the service, and a page
+ * that shouts would be lying about the size of the problem.
+ */
+.nf {
+  min-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: clamp(40px, 10vw, 96px);
+}
+
+.nf-code {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-title {
+  margin: 0 0 14px;
+  font-size: clamp(26px, 6vw, 38px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.nf-lede {
+  margin: 0 0 28px;
+  max-width: 52ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.nf-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.nf-actions .btn { min-height: var(--tap); display: inline-flex; align-items: center; }
+
+.nf-elsewhere {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  max-width: 52ch;
+}
+
+.nf-elsewhere a { color: var(--accent-text); }
+</style>
+</head>
+<body>
+
+<header class="head">
+  <div class="head-inner">
+    <a class="brand" href="/" style="text-decoration:none;color:inherit">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 19.5h17"/>
+        <path d="M5.6 19.5v-6.2a1.3 1.3 0 0 1 1.3-1.3h1.6a1.3 1.3 0 0 1 1.3 1.3v6.2"/>
+        <path d="M5.6 14.1h4.2"/>
+        <path d="M11.9 19.5V8.2a1.3 1.3 0 0 1 1.3-1.3h1.5a1.3 1.3 0 0 1 1.3 1.3v11.3"/>
+        <path d="M11.9 9.9h4.1"/>
+        <path d="M18.1 19.5v-3.8a1.2 1.2 0 0 1 1.2-1.2h.9"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name" style="color:var(--ink)">Steading</span>
+        <span class="tagline">Nothing is uploaded.</span>
+      </span>
+    </a>
+  </div>
+</header>
+
+<main class="wrap nf">
+  <p class="nf-code">404</p>
+  <h1 class="nf-title">That address is not here.</h1>
+  <p class="nf-lede">
+    The rest of Steading is running normally &mdash; this is one missing page, not a
+    fault with the service. If you followed a link from somewhere, it may point at
+    something that has since moved.
+  </p>
+
+  <p class="nf-actions">
+    <a class="btn btn-primary" href="/">Go to Steading</a>
+    <a class="btn btn-quiet" href="/walkthrough">See how it works</a>
+  </p>
+
+  <p class="nf-elsewhere">
+    Looking for the engineering record &mdash; the measurements, screenshots and stated
+    limits? It is kept separately, at
+    <a href="https://bryankwandou.github.io/steading/">bryankwandou.github.io/steading</a>.
+  </p>
+</main>
+
+<footer class="foot">
+  <span class="foot-text">Steading &mdash; the file is written to your own machine.</span>
+</footer>
+
+</body>
+</html>
