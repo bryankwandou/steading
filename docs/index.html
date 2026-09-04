@@ -6,17 +6,18 @@
 <title>Steading — evidence</title>
 <meta name="description" content="What was built, what was measured, and the screenshots and commands that show it. Every figure here can be taken again.">
 <meta name="theme-color" content="#ffffff">
-<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-<script src="/js/boot-theme.js"></script>
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/landing.css">
-<link rel="stylesheet" href="/css/evidence.css">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<script src="js/boot-theme.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/evidence.css">
+<link rel="stylesheet" href="css/pages.css">
 </head>
 <body>
 
 <header class="head">
   <div class="head-inner">
-    <a class="brand" href="/">
+    <a class="brand" href="https://steading.vercel.app/">
       <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M3.5 19.5h17"/>
         <path d="M5.6 19.5v-6.2a1.3 1.3 0 0 1 1.3-1.3h1.6a1.3 1.3 0 0 1 1.3 1.3v6.2"/>
@@ -46,12 +47,19 @@
 
 <main class="wrap ev-page">
 
-  <p class="eyebrow">Evidence</p>
+  <p class="eyebrow">Engineering record</p>
   <h1 class="section-title">What was built, and how each claim was checked.</h1>
   <p class="section-lede">
     Every figure on this page came from running the thing, and the command that produces
     it is printed beside it. Screenshots are captured through the devtools protocol at a
     stated viewport, so what you see is what a reader at that width sees.
+  </p>
+
+  <p class="ev-note">
+    This is the engineering record for reviewers and auditors, not documentation for
+    people using Steading. It sets out what was measured, what failed, and what the
+    limits are. If you came here to save something, the application is at
+    <a href="https://steading.vercel.app/">steading.vercel.app</a>.
   </p>
 
   <p class="ev-meta">
@@ -71,7 +79,7 @@
     </p>
 
     <figure class="ev-shot">
-      <img src="/docs/03-live-pdf-tool.png" alt="The Steading landing page at 390 pixels wide, showing a section headed 'Paste a link. Get a PDF.' with a link field and a 'Save pictures as PDF' button." loading="lazy" width="780" height="1688">
+      <img src="img/03-live-pdf-tool.png" alt="The Steading landing page at 390 pixels wide, showing a section headed 'Paste a link. Get a PDF.' with a link field and a 'Save pictures as PDF' button." loading="lazy" width="780" height="1688">
       <figcaption>The tool as it appears on a phone at 390&nbsp;px. No install, no account.</figcaption>
     </figure>
 
@@ -168,11 +176,11 @@ POST /api/info  https://en.wikipedia.org/wiki/Video
 
     <div class="ev-pair">
       <figure class="ev-shot">
-        <img src="/docs/06-app-phone.png" alt="The Steading application at 390 pixels wide: heading 'What would you like to keep?', a link field on a raised card, and three rows listing video, audio and photo formats." loading="lazy" width="780" height="1688">
+        <img src="img/06-app-phone.png" alt="The Steading application at 390 pixels wide: heading 'What would you like to keep?', a link field on a raised card, and three rows listing video, audio and photo formats." loading="lazy" width="780" height="1688">
         <figcaption>390&nbsp;px</figcaption>
       </figure>
       <figure class="ev-shot">
-        <img src="/docs/07-app-wide.png" alt="The same application at 1280 pixels wide, with the same content in a centred column." loading="lazy" width="2560" height="1600">
+        <img src="img/07-app-wide.png" alt="The same application at 1280 pixels wide, with the same content in a centred column." loading="lazy" width="2560" height="1600">
         <figcaption>1280&nbsp;px</figcaption>
       </figure>
     </div>
@@ -198,7 +206,7 @@ POST /api/info  https://en.wikipedia.org/wiki/Video
     <h2>4. The walkthrough</h2>
     <p>
       Six steps from pasted link to finished file, at
-      <a href="/walkthrough">/walkthrough</a>. Not a recording: a video file is
+      <a href="https://steading.vercel.app/walkthrough">/walkthrough</a>. Not a recording: a video file is
       megabytes, blurs when zoomed, cannot be read aloud by a screen reader, cannot be
       translated without re-recording, and goes stale the first time a button moves. This
       is the interface rebuilt from the stylesheet the application already uses, so it is
@@ -212,11 +220,11 @@ POST /api/info  https://en.wikipedia.org/wiki/Video
 
     <div class="ev-pair">
       <figure class="ev-shot">
-        <img src="/docs/04-walkthrough-wide.png" alt="The walkthrough at 1280 pixels: a phone-shaped frame on the left showing one step of the interface, and six numbered captions on the right with the current one highlighted." loading="lazy" width="2560" height="1600">
+        <img src="img/04-walkthrough-wide.png" alt="The walkthrough at 1280 pixels: a phone-shaped frame on the left showing one step of the interface, and six numbered captions on the right with the current one highlighted." loading="lazy" width="2560" height="1600">
         <figcaption>1280&nbsp;px — frame and captions side by side</figcaption>
       </figure>
       <figure class="ev-shot">
-        <img src="/docs/05-walkthrough-phone.png" alt="The same walkthrough at 390 pixels, with the frame above and a single caption below it." loading="lazy" width="780" height="1688">
+        <img src="img/05-walkthrough-phone.png" alt="The same walkthrough at 390 pixels, with the frame above and a single caption below it." loading="lazy" width="780" height="1688">
         <figcaption>390&nbsp;px — one caption at a time, so it stays beside the frame</figcaption>
       </figure>
     </div>
@@ -229,18 +237,18 @@ POST /api/info  https://en.wikipedia.org/wiki/Video
 
     <div class="ev-pair">
       <figure class="ev-shot">
-        <img src="/docs/02-landing-wide.png" alt="The Steading landing page at 1280 pixels: heading 'Keep your own copy', four figures, and a three-dimensional arrangement of file cards." loading="lazy" width="2560" height="1600">
+        <img src="img/02-landing-wide.png" alt="The Steading landing page at 1280 pixels: heading 'Keep your own copy', four figures, and a three-dimensional arrangement of file cards." loading="lazy" width="2560" height="1600">
         <figcaption>1280&nbsp;px</figcaption>
       </figure>
       <figure class="ev-shot">
-        <img src="/docs/01-landing-phone.png" alt="The same landing page at 390 pixels, stacked into a single column." loading="lazy" width="780" height="1688">
+        <img src="img/01-landing-phone.png" alt="The same landing page at 390 pixels, stacked into a single column." loading="lazy" width="780" height="1688">
         <figcaption>390&nbsp;px</figcaption>
       </figure>
     </div>
 
     <figure class="ev-shot">
-      <img src="/docs/08-sites-list.png" alt="The supported sites page, listing the platforms Steading has been checked against." loading="lazy" width="2560" height="1600">
-      <figcaption>The site list, at <a href="/sites">/sites</a>.</figcaption>
+      <img src="img/08-sites-list.png" alt="The supported sites page, listing the platforms Steading has been checked against." loading="lazy" width="2560" height="1600">
+      <figcaption>The site list, at <a href="https://steading.vercel.app/sites">/sites</a>.</figcaption>
     </figure>
 
     <p>
@@ -315,6 +323,6 @@ VIDEO_PROVIDERS=scrape npm run universal</code></pre>
   <span class="foot-text">Steading — every figure on this page can be taken again.</span>
 </footer>
 
-<script type="module" src="/js/theme.js"></script>
+<script type="module" src="js/theme.js"></script>
 </body>
 </html>

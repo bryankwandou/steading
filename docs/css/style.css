@@ -1,0 +1,1725 @@
+/* Steading -- hand-written, no framework, no build step.
+ *
+ * One accent colour, 1px rules instead of heavy shadows, hairline progress.
+ *
+ * Theming: every colour is a token on :root and every token is redefined under
+ * [data-theme="dark"]. No component ever hard-codes a colour, so a component cannot be
+ * "forgotten" when the theme flips -- which is how dark modes end up with white text on
+ * white. The one exception is the ring alpha, which needs the accent's own channels.
+ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-sunken: #f6f8fc;
+  --ink: #0d1526;
+  --ink-soft: #55637a;
+  --ink-faint: #617087; /* 5.03:1 on white -- the faintest tone still passing AA */
+  --line: #e6eaf1;
+  --line-strong: #d2dae6;
+
+  --accent: #1b6ef3;
+  --accent-hover: #1558c8;
+  --accent-ink: #ffffff;
+  --accent-wash: #eff5ff;
+  --accent-ring: rgba(27, 110, 243, 0.20);
+
+  --danger: #c62f2f;
+  --danger-wash: #fdf2f2;
+  --ok: #157f3c;
+  --ok-wash: #f1faf4;
+
+  --shadow-card: 0 1px 2px rgba(13, 21, 38, 0.04);
+  --shadow-lift: 0 2px 10px rgba(13, 21, 38, 0.07);
+
+  --radius: 10px;
+  --radius-sm: 7px;
+  --pad: 20px;
+  --tap: 46px;      /* form controls */
+  --tap-head: 44px; /* header controls: lighter, still a comfortable target */
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Blue-tinted slate rather than black: the accent stays the accent, and a phone's
+     OLED still gets a near-black canvas. */
+  --bg: #0b1220;
+  --surface: #111a2b;
+  --surface-sunken: #0e1728;
+  --ink: #e9eefb;
+  --ink-soft: #a7b7cf;
+  --ink-faint: #8295b2;
+  --line: #1f2c43;
+  --line-strong: #30415f;
+
+  --accent: #5b9dff;
+  --accent-hover: #82b4ff;
+  --accent-ink: #08142b;
+  --accent-wash: #152743;
+  --accent-ring: rgba(91, 157, 255, 0.28);
+
+  --danger: #ff7b7b;
+  --danger-wash: #2a1720;
+  --ok: #4ade80;
+  --ok-wash: #12271e;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-lift: 0 2px 12px rgba(0, 0, 0, 0.38);
+}
+
+/* ---------------------------------------------------------------- hosted only
+
+   --accent as small text fails AA on the light tinted surfaces: 4.19:1 on
+   --accent-wash, 4.32:1 on --surface-sunken. This is the same hue one step darker,
+   which clears AA on every light surface. Accent-coloured *text* uses it; fills and
+   borders keep using --accent.
+
+   It lives in its own block rather than inside the token lists above so those stay
+   byte-identical to the local build and the two cannot silently drift apart. On dark
+   surfaces the accent is already the light colour, so there it is simply the accent. */
+:root { --accent-text: #1558c8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent-text: var(--accent); } }
+[data-theme="dark"] { --accent-text: var(--accent); }
+
+/* The measure the landing sections are held to. Not a colour, so it is the same in
+   both themes; it lives here for the same reason as --accent-text, to keep the
+   shared token lists byte-identical to the local build. */
+:root { --wide: 1120px; }
+
+/* Only while the toggle is crossfading. Leaving colour transitions on permanently makes
+   every hover feel 200 ms late, which is what a "laggy" theme switch usually is. */
+.theme-shifting,
+.theme-shifting *,
+.theme-shifting *::before,
+.theme-shifting *::after {
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease,
+              fill .2s ease, stroke .2s ease, box-shadow .2s ease !important;
+}
+
+* { box-sizing: border-box; }
+
+/* The UA stylesheet gives [hidden] a plain `display: none`, which any class that sets
+   a display beats -- .card is display:flex, so a hidden card would still paint. The JS
+   toggles `hidden` everywhere, so this rule is what makes that actually work. */
+[hidden] { display: none !important; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding:
+    env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+::selection { background: var(--accent-ring); }
+
+/* ------------------------------------------------------------------- header */
+
+.head {
+  width: 100%;
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.head-inner {
+  width: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 16px var(--pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0; /* lets the tagline ellipsis instead of pushing the buttons off-screen */
+}
+
+.brand-mark {
+  width: 21px; height: 21px;
+  margin-top: 1px;
+  flex: none;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-text { display: flex; flex-direction: column; min-width: 0; }
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.tagline {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-faint);
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+/* Language picker: a real <select>, so the phone renders its own native list of 24
+   options. The chrome around it is ours; the list is the platform's. */
+.lang {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--tap-head);
+  padding: 0 26px 0 30px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: border-color .14s ease, background-color .14s ease;
+}
+.lang:hover { border-color: var(--accent); }
+.lang:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+
+.lang-icon, .lang-caret {
+  position: absolute;
+  width: 15px; height: 15px;
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.lang-icon { left: 9px; }
+.lang-caret { right: 8px; width: 14px; height: 14px; }
+
+.lang select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: none;
+  outline: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  max-width: 7.5rem;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+/* The popup itself is drawn by the OS and does not inherit our tokens. */
+.lang select option { background: var(--surface); color: var(--ink); }
+
+/* Written as .btn-icon.theme-btn so it outranks the .btn-icon sizing further down --
+   with a bare .theme-btn the later rule wins and the header controls end up different
+   heights. */
+.btn-icon.theme-btn { width: var(--tap-head); height: var(--tap-head); position: relative; }
+.theme-btn svg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 17px; height: 17px;
+  transition: opacity .18s ease, transform .28s cubic-bezier(.4, 0, .2, 1);
+}
+/* Exactly one icon is visible at a time; the other is rotated out, not stacked over
+   the label of anything. Both are absolutely positioned inside their own button. */
+.icon-sun  { opacity: 1; transform: rotate(0deg) scale(1); }
+.icon-moon { opacity: 0; transform: rotate(-90deg) scale(.6); }
+[data-theme="dark"] .icon-sun  { opacity: 0; transform: rotate(90deg) scale(.6); }
+[data-theme="dark"] .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+/* ---------------------------------------------------------------------- app */
+
+.app {
+  flex: 1;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 34px var(--pad) 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+
+.label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.input-row { display: flex; gap: 8px; }
+
+input[type="url"], select#quality {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 13px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+input[type="url"]::placeholder { color: var(--ink-faint); }
+
+input[type="url"]:focus-visible, select:focus-visible,
+.btn:focus-visible, .btn-icon:focus-visible, .seg-btn:focus-visible, .btn-link:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+input[type="url"][aria-invalid="true"] { border-color: var(--danger); }
+
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+/* The four platforms, named before anyone types rather than after they get it wrong.
+   A shade darker than .hint because this is the one line that prevents a wasted attempt,
+   and it should be read rather than skimmed past. */
+.supports {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.btn {
+  min-height: var(--tap);
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color .14s ease, border-color .14s ease,
+              opacity .14s ease, transform .08s ease;
+}
+
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-primary:active:not(:disabled) { transform: scale(.985); }
+.btn:disabled { opacity: .5; cursor: default; }
+
+.btn-icon {
+  flex: none;
+  width: var(--tap); height: var(--tap);
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color .14s ease, background-color .14s ease, color .14s ease;
+}
+.btn-icon:hover { border-color: var(--accent); background: var(--accent-wash); color: var(--accent); }
+.btn-icon:active { transform: scale(.96); }
+.btn-icon svg {
+  width: 18px; height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.btn-link {
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color .14s ease;
+}
+.btn-link:hover { color: var(--danger); }
+
+/* --------------------------------------------------------------------- card */
+
+.card {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: rise .2s cubic-bezier(.2, .7, .3, 1);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* -------------------------------------------------------------------- media */
+
+.media { display: flex; gap: 13px; align-items: flex-start; }
+
+.thumb {
+  flex: none;
+  width: 112px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--accent-wash);
+  border: 1px solid var(--line);
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb.is-empty img { display: none; }
+
+.meta { min-width: 0; } /* without this a long unbroken title stretches the flex row */
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  /* Two lines, then ellipsis -- titles get long and the card must not jump. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.submeta {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* ----------------------------------------------------------------- controls */
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* Segmented control with a sliding thumb. The thumb is a background layer behind the
+   labels (z-index 0 vs 1), never a second copy of the text. */
+.seg {
+  position: relative;
+  display: flex;
+  padding: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.seg-thumb {
+  position: absolute;
+  z-index: 0;
+  top: 3px; bottom: 3px; left: 3px;
+  width: calc(50% - 3px);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  transition: transform .22s cubic-bezier(.4, 0, .2, 1);
+}
+.seg[data-active="mp3"] .seg-thumb { transform: translateX(100%); }
+
+.seg-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 38px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .16s ease;
+}
+.seg-btn.is-on { color: var(--ink); font-weight: 500; }
+
+.quality { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 130px; }
+.quality select { min-height: 44px; }
+
+/* ----------------------------------------------------------------- progress */
+
+.prog-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.phase { font-size: 13.5px; font-weight: 500; min-width: 0; }
+
+.percent {
+  flex: none;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 4px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .3s cubic-bezier(.3, .8, .4, 1), background-color .2s ease;
+}
+
+/* No percentage yet (extraction, or a stream with no known size). */
+.bar-fill.is-indeterminate {
+  width: 34%;
+  transition: none;
+  animation: slide 1.25s cubic-bezier(.5, 0, .5, 1) infinite;
+}
+@keyframes slide {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(320%); }
+}
+
+.bar-fill.is-done { background: var(--ok); }
+
+.prog-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.stats {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ message */
+
+.message {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--ink-faint);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+  animation: rise .2s cubic-bezier(.2, .7, .3, 1);
+}
+.message.is-error {
+  border-left-color: var(--danger);
+  background: var(--danger-wash);
+  color: var(--danger);
+}
+.message.is-ok {
+  border-left-color: var(--ok);
+  background: var(--ok-wash);
+  color: var(--ok);
+}
+
+/* ------------------------------------------------------------------- footer */
+
+.foot {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 14px var(--pad) 24px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--line);
+}
+
+.foot-text { min-width: 0; overflow-wrap: anywhere; }
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  flex: none;
+  transition: background-color .2s ease, box-shadow .2s ease;
+}
+.dot.is-ok { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-wash); }
+.dot.is-bad { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-wash); }
+
+/* --------------------------------------------------------------------- rtl */
+
+/* Arabic and Persian. The layout is flex-based, so the box order flips for free; only
+   the two things pinned with physical offsets need a mirror. */
+[dir="rtl"] .lang { padding: 0 30px 0 26px; }
+[dir="rtl"] .lang-icon { left: auto; right: 9px; }
+[dir="rtl"] .lang-caret { right: auto; left: 8px; }
+[dir="rtl"] .message { border-left: 1px solid var(--line); border-right: 2px solid var(--ink-faint); }
+[dir="rtl"] .message.is-error { border-right-color: var(--danger); }
+[dir="rtl"] .message.is-ok { border-right-color: var(--ok); }
+[dir="rtl"] .seg-thumb { left: auto; right: 3px; }
+[dir="rtl"] .seg[data-active="mp3"] .seg-thumb { transform: translateX(-100%); }
+/* The determinate bar grows from the start edge, which is the right edge in RTL. */
+[dir="rtl"] .bar-fill { margin-left: auto; }
+[dir="rtl"] .bar-fill.is-indeterminate { animation-name: slide-rtl; }
+@keyframes slide-rtl {
+  0%   { transform: translateX(110%); }
+  100% { transform: translateX(-320%); }
+}
+
+/* -------------------------------------------------------------------- small */
+
+@media (max-width: 430px) {
+  :root { --pad: 16px; }
+  .thumb { width: 92px; }
+  .controls { flex-direction: column; align-items: stretch; }
+  .seg { width: 100%; }
+
+  /* On a phone the language name costs ~90px of header, which is exactly what the
+     motto needs to render in full. Collapse the control to a globe pill: the select is
+     still there and still opens the platform list of endonyms, it just stops printing
+     the current one. The aria-label carries the meaning. */
+  .lang { padding: 0 22px 0 26px; }
+  .lang select { max-width: 0; opacity: 0; }
+  [dir="rtl"] .lang { padding: 0 26px 0 22px; }
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .message { animation: none; }
+  .bar-fill.is-indeterminate { animation: none; width: 100%; opacity: .45; }
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+
+/* ------------------------------------------------------------------ mode bar */
+
+/* Only the hosted build has this. It states which backend is answering, because this
+   deployment cannot do the thing the app is named for and should say so plainly rather
+   than let a viewer assume otherwise. */
+
+.mode-bar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "chip note"
+    ".    action";
+  gap: 4px 10px;
+  align-items: start;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.mode-chip {
+  grid-area: chip;
+  align-self: center;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.mode-chip.is-demo { background: var(--accent-wash); color: var(--accent-text); border: 1px solid var(--accent); }
+.mode-chip.is-live { background: var(--ok-wash); color: var(--ok); border: 1px solid var(--ok); }
+
+.mode-note {
+  grid-area: note;
+  margin: 0;
+  align-self: center;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.mode-switch { grid-area: action; justify-self: start; font-size: 12.5px; color: var(--accent-text); }
+.mode-switch:hover { color: var(--accent-hover); }
+
+/* Caption under a preview whose metadata describes the bundled sample rather than the
+   pasted link. */
+.sample-note {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+@media (max-width: 430px) {
+  .mode-bar {
+    grid-template-columns: 1fr;
+    grid-template-areas: "chip" "note" "action";
+    gap: 7px;
+  }
+  .mode-chip { justify-self: start; }
+}
+
+/* ------------------------------------------------------------- setup page */
+
+/* Only /setup.html uses these. Every colour is an existing token, so this section
+   inherits the light/dark work already done rather than introducing new pairings. */
+
+.brand-link { text-decoration: none; color: inherit; }
+
+.setup-intro { display: flex; flex-direction: column; gap: 8px; }
+
+.setup-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 640;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.setup-lead { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+
+/* System picker. Scrolls rather than wraps, so four labels never break the layout. */
+.os-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.os-tabs::-webkit-scrollbar { display: none; }
+
+.os-tab {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 15px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.os-tab:hover { color: var(--ink); border-color: var(--line-strong); }
+.os-tab.is-on {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.setup-card { gap: 0; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+
+.step { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; }
+
+.step-num {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--accent-text);
+  background: var(--accent-wash);
+  border-radius: 999px;
+}
+
+.step-body { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.step-text { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+
+/* The command. Must never force the page to scroll sideways, however long it is. */
+.cmd {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.cmd code {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 11px 12px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+  overflow-x: auto;
+  white-space: pre;
+  scrollbar-width: thin;
+}
+
+.btn-copy {
+  flex: 0 0 auto;
+  min-width: 74px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 0;
+  border-left: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-copy:hover { background: var(--accent-hover); }
+.btn-copy.is-done { background: var(--ok); }
+
+.cmd-note { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); }
+
+.disclose {
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.disclose summary {
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+.disclose summary::-webkit-details-marker { display: none; }
+.disclose summary::before { content: "+ "; color: var(--ink-faint); }
+.disclose[open] summary::before { content: "\2212 "; }
+
+.disclose-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.disclose-link {
+  display: inline-block;
+  margin-top: 10px;
+  margin-right: 16px;
+  font-size: 12.5px;
+  color: var(--accent-text);
+}
+
+.setup-manual, .setup-back { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.setup-manual a, .setup-back a { color: var(--accent); }
+.setup-back { text-align: center; }
+
+@media (max-width: 430px) {
+  .setup-title { font-size: 20px; }
+  .cmd { flex-direction: column; }
+  .btn-copy { min-height: 40px; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+/* The mode bar's actions. The setup link is the primary one: running it locally is the
+   only path that actually downloads anything, so it should not look like a footnote. */
+.mode-actions { grid-area: action; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.mode-cta {
+  width: auto;
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------ verification page */
+
+/* A document rather than a screen: denser, wider measure, and quiet. Someone reading
+   this is checking claims, so nothing here should compete for attention with the
+   numbers. Every colour is an existing token. */
+
+.v-page { gap: 26px; }
+
+.v-title { margin: 0 0 6px; font-size: 22px; font-weight: 640; letter-spacing: -0.015em; color: var(--ink); }
+.v-lead  { margin: 0 0 8px; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+.v-stamp { margin: 0 0 24px; font-size: 12px; color: var(--ink-faint); }
+
+.v-block { margin: 0 0 26px; }
+.v-block h2 {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+  font-weight: 620;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.v-block > p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+
+.v-page pre {
+  margin: 0;
+  padding: 12px 13px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.v-page pre code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre;
+}
+
+/* Wide content scrolls inside itself; the page never scrolls sideways. */
+.v-scroll { overflow-x: auto; scrollbar-width: thin; }
+
+.v-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.v-table th {
+  text-align: left;
+  font-weight: 580;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 10px 7px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.v-table td { padding: 9px 10px 9px 0; color: var(--ink); vertical-align: top; }
+.v-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.v-table code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+/* The digest sits on its own row so it can wrap without squeezing the columns. */
+.v-table .digest-row td { padding: 0 0 12px; border-bottom: 1px solid var(--line); }
+.v-table .digest {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  word-break: break-all;
+}
+
+.v-facts { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; margin: 0; font-size: 13px; }
+.v-facts dt { color: var(--ink-faint); }
+.v-facts dd { margin: 0; color: var(--ink); }
+.v-facts code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+
+.v-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.v-counts strong {
+  font-size: 19px;
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  margin-right: 5px;
+}
+
+.v-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.v-list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.v-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+}
+/* Marks, not colour alone -- the distinction has to survive being printed in grey. */
+.v-list.is-yes li::before { content: "\2713"; color: var(--ok); }
+.v-list.is-no  li::before { content: "\00D7"; color: var(--danger); }
+
+.v-note {
+  margin: 0 0 22px;
+  padding: 11px 13px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.v-links { display: flex; flex-wrap: wrap; gap: 18px; margin: 0; font-size: 13px; }
+.v-links a { color: var(--accent-text); }
+
+.v-langs { display: flex; gap: 2px; padding: 3px; background: var(--surface-sunken); border: 1px solid var(--line); border-radius: 999px; }
+.v-lang {
+  min-height: 30px;
+  padding: 0 11px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.v-lang:hover { color: var(--ink); }
+.v-lang.is-on { color: var(--accent-ink); background: var(--accent); }
+
+@media (max-width: 430px) {
+  .v-title { font-size: 20px; }
+  .v-counts { gap: 8px 18px; }
+  .v-counts strong { font-size: 17px; }
+}
+
+/* ------------------------------------------------------------------- print */
+
+/* The verification page exists to be checked, and something being checked often ends up
+   on paper. Printing it as-is would have wasted ink on a dark background and, worse, cut
+   the digests off at the page edge -- a truncated digest is not evidence of anything.
+   The other pages are interactive and are given the same courtesy for free. */
+
+@media print {
+  :root, :root[data-theme="dark"] {
+    /* Ink on paper, whatever was on screen. */
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-sunken: #ffffff;
+    --ink: #000000;
+    --ink-soft: #1a1a1a;
+    --ink-faint: #3a3a3a;
+    --line: #b0b0b0;
+    --line-strong: #808080;
+    --accent: #0b3d91;
+    --accent-text: #0b3d91;
+    --accent-ink: #ffffff;
+    --accent-wash: #ffffff;
+    --ok: #0b6b2f;
+    --danger: #8a1414;
+    --shadow-card: none;
+    --shadow-lift: none;
+  }
+
+  body { background: #ffffff; }
+
+  /* Controls do nothing on paper. */
+  .head-actions, .theme-btn, .lang, .v-langs,
+  .btn, .btn-icon, .btn-copy, .os-tabs, .v-links, .setup-back {
+    display: none !important;
+  }
+
+  .app, .v-page { max-width: none; padding: 0; gap: 0; }
+
+  /* Both halves of the record, not only the tab that happened to be open. */
+  .v-page [data-lang][hidden] { display: block !important; }
+  .v-page [data-lang] + [data-lang] { break-before: page; }
+
+  /* A heading stranded at the foot of a page, or a split digest, makes the document
+     harder to trust than it needs to be. */
+  .v-block { break-inside: avoid; }
+  .v-block h2, .v-title { break-after: avoid; }
+  .v-table tr { break-inside: avoid; }
+
+  /* Wrap rather than scroll: nothing can scroll on paper. */
+  .v-page pre, .v-scroll { overflow: visible !important; border-color: #b0b0b0; }
+  .v-page pre code, .v-table .digest {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* Where a link points matters more on paper than that it is a link. */
+  .disclose-link[href]::after,
+  .v-links a[href]::after { content: " (" attr(href) ")"; font-size: 0.9em; }
+
+  .disclose { border-color: #b0b0b0; }
+  .disclose[open] summary { font-weight: 700; }
+  .v-note { border-color: #b0b0b0; }
+}
+
+/* ---------------------------------------------------------------- landing */
+
+/* The part someone judges in the first second. It spans the window, and the type is
+   sized against the viewport rather than against a 560px column -- a headline set at
+   21px inside a narrow measure reads as an app screen no matter how good the words are.
+   The tool itself keeps its narrow column further down, where a narrow measure is
+   actually the right answer. */
+
+.hero {
+  width: 100%;
+  padding: clamp(40px, 7vw, 84px) 0 clamp(36px, 6vw, 72px);
+  background:
+    radial-gradient(90ch 60ch at 12% -10%, var(--accent-wash), transparent 62%),
+    radial-gradient(70ch 50ch at 92% 8%, var(--accent-wash), transparent 58%);
+}
+
+.hero-inner {
+  width: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 4vw, 52px);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .hero-inner { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+}
+
+.hero-copy { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+.hero-what {
+  margin: 0;
+  font-size: clamp(30px, 5.4vw, 58px);
+  line-height: 1.08;
+  font-weight: 680;
+  letter-spacing: -0.032em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.hero-why {
+  margin: 0;
+  max-width: 60ch;
+  font-size: clamp(14.5px, 1.35vw, 17px);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.hero-get {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* The one thing most visitors came for, sized so it is never in doubt. */
+.hero-cta {
+  width: auto;
+  min-height: 56px;
+  padding: 0 34px;
+  font-size: 16px;
+  font-weight: 620;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 6px 22px var(--accent-ring);
+  transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s ease, background .15s;
+}
+.hero-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 30px var(--accent-ring); }
+.hero-cta:active { transform: none; }
+
+.hero-note  { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
+.hero-other { font-size: 13px; color: var(--accent-text); }
+
+/* The diagram, given the room a hero image would normally take. */
+.hero-art {
+  min-width: 0;
+  padding: clamp(16px, 2.4vw, 26px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.6);
+  box-shadow: var(--shadow-lift);
+}
+
+/* A band of its own, so the claim and its evidence are not crowded. */
+.band {
+  width: 100%;
+  padding: clamp(30px, 4.5vw, 56px) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-sunken);
+}
+
+.band-inner {
+  width: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* The demonstration is subordinate to the download, and labelled so nobody mistakes
+   it for the working app. */
+.try { display: flex; flex-direction: column; gap: 7px; }
+
+.try-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 620;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+
+.try-note { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink-faint); }
+
+/* -------------------------------------------------- the "why local" diagram */
+
+/* This is the one piece of motion on the page that carries an argument rather than
+   decorating one: the same request, refused from a server and accepted from an ordinary
+   connection. Everything is CSS on inline SVG -- no library, which the CSP would block
+   anyway, and nothing that costs a slow machine more than a compositor transform. */
+
+.flow-title {
+  margin: 0;
+  font-size: clamp(17px, 2.1vw, 22px);
+  font-weight: 640;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+}
+
+.flow-art { width: 100%; height: auto; display: block; overflow: visible; }
+
+.node rect {
+  fill: var(--surface-sunken);
+  stroke: var(--line-strong);
+  stroke-width: 1.2;
+}
+.node .glyph {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.node-site .glyph { fill: var(--ink-soft); stroke: none; }
+
+.wire {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 4 4;
+}
+.wire-bad  { stroke: var(--line-strong); }
+.wire-good { stroke: var(--accent); }
+
+.packet { opacity: 0; }
+.packet-bad  { fill: var(--danger); }
+.packet-good { fill: var(--accent); }
+
+.verdict { opacity: 0; }
+.verdict circle { stroke-width: 1.6; fill: var(--bg); }
+.verdict path   { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.verdict-bad  circle { stroke: var(--danger); }
+.verdict-bad  path   { stroke: var(--danger); }
+.verdict-good circle { stroke: var(--ok); }
+.verdict-good path   { stroke: var(--ok); }
+
+.flow-label {
+  fill: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 550;
+  text-anchor: middle;
+  font-family: inherit;
+}
+.flow-label-top { fill: var(--ink-faint); }
+
+.flow-notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px 32px;
+}
+
+@media (min-width: 760px) {
+  .flow-notes { grid-template-columns: 1fr 1fr; }
+}
+
+.flow-note {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.flow-tag {
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-weight: 620;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.is-bad  .flow-tag { color: var(--danger); background: var(--danger-wash); }
+.is-good .flow-tag { color: var(--ok);     background: var(--ok-wash); }
+
+/* --- motion ------------------------------------------------------------- */
+
+/* Runs only while the diagram is on screen, so a page left open in a background tab
+   is not animating to nobody. */
+#flow.is-live .packet-bad {
+  offset-path: path("M150 42 C 150 70, 62 74, 62 108");
+  animation: packet-refused 4.4s ease-in-out infinite;
+}
+#flow.is-live .packet-good {
+  offset-path: path("M170 42 C 170 70, 258 74, 258 108");
+  animation: packet-accepted 4.4s ease-in-out infinite;
+}
+#flow.is-live .verdict-bad  { animation: verdict-in 4.4s ease-in-out infinite; }
+#flow.is-live .verdict-good { animation: verdict-in 4.4s ease-in-out infinite; }
+#flow.is-live .wire { animation: wire-drift 4.4s linear infinite; }
+
+/* The refused packet stops at the cross and fades; it never reaches the server. */
+@keyframes packet-refused {
+  0%        { offset-distance: 0%;  opacity: 0; }
+  8%        { opacity: 1; }
+  38%       { offset-distance: 52%; opacity: 1; }
+  46%, 100% { offset-distance: 52%; opacity: 0; }
+}
+
+/* The accepted one goes the whole way. */
+@keyframes packet-accepted {
+  0%        { offset-distance: 0%;   opacity: 0; }
+  8%        { opacity: 1; }
+  70%       { offset-distance: 100%; opacity: 1; }
+  78%, 100% { offset-distance: 100%; opacity: 0; }
+}
+
+@keyframes verdict-in {
+  0%, 34%   { opacity: 0; transform: scale(.82); }
+  44%, 84%  { opacity: 1; transform: scale(1); }
+  100%      { opacity: 0; transform: scale(1); }
+}
+
+@keyframes wire-drift { to { stroke-dashoffset: -16; } }
+
+.verdict { transform-box: fill-box; transform-origin: center; }
+
+/* --- entrances ---------------------------------------------------------- */
+
+/* Hidden only once the script that brings them back is known to be running. Written the
+   other way round -- hidden by default, revealed by JS -- one script failure leaves the
+   page blank, and a blank page is a far worse outcome than an unanimated one. The class
+   is added by watchReveals() on its first line. */
+.js-reveal .reveal { opacity: 0; transform: translateY(14px); }
+.js-reveal .reveal.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity .5s ease, transform .5s cubic-bezier(.2, .7, .3, 1);
+}
+
+/* Nothing above may move for someone who asked for less movement. The diagram still
+   reads: both verdicts are simply shown at rest, which is the state it argues from. */
+@media (prefers-reduced-motion: reduce) {
+  #flow.is-live .packet-bad,
+  #flow.is-live .packet-good,
+  #flow.is-live .verdict-bad,
+  #flow.is-live .verdict-good,
+  #flow.is-live .wire { animation: none; }
+
+  .packet { opacity: 0; }
+  .verdict { opacity: 1; transform: none; }
+
+  .js-reveal .reveal, .js-reveal .reveal.is-in { opacity: 1; transform: none; transition: none; }
+}
+
+/* ------------------------------------------------- the product, shown */
+
+/* A landing page for software shows the software. This is a faithful rendering of the
+   real interface mid-download rather than a screenshot: it stays sharp at any size,
+   weighs nothing to load, follows the theme, and cannot quietly go out of date the way
+   a bitmap does. The address bar says 127.0.0.1 because that is the whole point. */
+
+.shot {
+  border-radius: calc(var(--radius) * 1.4);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lift), 0 24px 60px rgba(13, 21, 38, 0.10);
+}
+
+.shot-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 13px;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--line);
+}
+.shot-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
+.shot-addr {
+  margin-left: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+
+.shot-body { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+
+.shot-row { display: flex; align-items: center; gap: 8px; }
+.shot-mark { width: 14px; height: 14px; border-radius: 4px; background: var(--accent); }
+.shot-name { font-size: 12px; font-weight: 640; color: var(--ink); letter-spacing: -0.01em; }
+
+.shot-field {
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+.shot-card {
+  display: flex;
+  gap: 11px;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+.shot-thumb {
+  flex: 0 0 auto;
+  width: 62px;
+  height: 38px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--accent-wash), var(--surface-sunken));
+  border: 1px solid var(--line);
+}
+.shot-meta { display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: 1; min-width: 0; }
+.shot-line { height: 7px; border-radius: 4px; background: var(--line-strong); opacity: .55; display: block; }
+.shot-line.w70 { width: 70%; }
+.shot-line.w45 { width: 45%; }
+.shot-line.w30 { width: 30%; }
+
+.shot-prog { display: flex; flex-direction: column; gap: 7px; }
+.shot-prog-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.shot-pct {
+  font-size: 11px;
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-text);
+}
+.shot-track { height: 4px; border-radius: 999px; background: var(--surface-sunken); overflow: hidden; }
+.shot-fill { height: 100%; width: 64%; border-radius: 999px; background: var(--accent); }
+
+.shot-cta { height: 38px; border-radius: var(--radius-sm); background: var(--accent); opacity: .92; }
+
+/* The bar creeps while the hero is on screen. Small, and it is the one thing in the
+   picture that says the product is doing something rather than sitting still. */
+.hero-art .shot-fill { animation: shot-creep 5.2s ease-in-out infinite; }
+
+@keyframes shot-creep {
+  0%, 100% { width: 58%; }
+  50%      { width: 76%; }
+}
+
+/* The diagram, now second to the product it explains. */
+.hero-diagram {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+/* --- already installed --------------------------------------------------- */
+
+.local-found {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ok);
+}
+
+.hero-get.is-live { gap: 12px; }
+
+/* The demonstration below is a trap for anyone who has the real thing running: it is
+   the box that cannot download. Hide it, and send them to the one that can. */
+.app-running .try,
+.app-running .mode-bar,
+.app-running #url-form { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-art .shot-fill { animation: none; }
+}
+
+/* The demonstration is opt-in, so its trigger has to look like a control rather than a
+   heading. Quiet on purpose: nobody who came to install the app should be pulled
+   sideways into a box that cannot download for them. */
+.try-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 580;
+  color: var(--ink-soft);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.try-toggle::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform .2s cubic-bezier(.2,.7,.3,1);
+}
+.try-toggle:hover { color: var(--ink); border-color: var(--line-strong); }
+.try-toggle.is-open::after { transform: rotate(-135deg) translate(-2px, -2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .try-toggle, .try-toggle::after { transition: none; }
+}
+
+/* ------------------------------------------- what to do after the download */
+
+/* Loud on purpose. Whoever needs this has just pressed a button and seen nothing
+   change, and is about to decide the thing is broken. It has to arrive with more
+   presence than the button that produced it. */
+
+.after {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 20px;
+  background: var(--ok-wash);
+  border: 1px solid var(--ok);
+  border-radius: var(--radius);
+}
+
+.after-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 660;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+
+.after-where { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+
+.after-steps {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  counter-reset: none;
+}
+.after-steps li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 6px 11px;
+  align-items: center;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.after-steps li > span:last-child { grid-column: 2; }
+
+.after-num {
+  grid-row: 1 / span 2;
+  align-self: start;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 680;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+/* The file as it looks in the download list, so the two can be matched by eye rather
+   than by reading a path. */
+.after-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  justify-self: start;
+}
+.after-icon { width: 17px; height: 17px; fill: none; stroke: var(--ink-soft); stroke-width: 1.5; stroke-linejoin: round; }
+.after-file code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.after-do { font-weight: 620; color: var(--ink); }
+
+.after-warn,
+.after-keep {
+  margin: 0;
+  padding-left: 13px;
+  border-left: 2px solid var(--line-strong);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.after-again { align-self: flex-start; font-size: 12.5px; color: var(--accent-text); }
+
+@media (max-width: 430px) {
+  .after { padding: 16px; }
+}
+
+/* When a live session is open it is the route that actually arrives somewhere for
+   people who cannot open a downloaded file, so the installer steps back to being the
+   alternative rather than the headline. */
+.live-open #get-install .hero-cta {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+}
+.live-open #get-install .hero-cta:hover { border-color: var(--ink-faint); transform: none; }
+
+/* Where the box for pasting a link went. It used to be on this page, so its absence
+   needs an answer rather than a silence. */
+.hero-paste {
+  margin: 10px 0 0;
+  padding-left: 13px;
+  border-left: 2px solid var(--line-strong);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  max-width: 52ch;
+}
+
+/* Saying plainly that three security prompts is a lot, and naming the way around it.
+   Quieter than the steps above it: it is for the person who has decided not to. */
+.after-hard {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* A second action beside the primary one. Same height and the same focus ring, so the
+   pair reads as two choices rather than a button and a link that happens to sit near it;
+   quieter only in weight, because "the other option" should not need hunting for. */
+.btn-quiet {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+.btn-quiet:hover { border-color: var(--ink-faint); background: var(--surface-sunken); }
+
+/* ------------------------------------------------------ the site catalogue */
+
+.s-block { margin: 0 0 30px; }
+.s-block h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.s-block > p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+
+.s-table td { border-bottom: 1px solid var(--line); vertical-align: top; padding: 10px 12px 10px 0; }
+.s-name { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.s-hosts code {
+  display: inline-block;
+  margin: 0 5px 3px 0;
+  padding: 1px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.s-note { font-size: 12.5px; line-height: 1.55; color: var(--ink-faint); max-width: 52ch; }
+.s-date {
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  color: var(--ok);
+  margin-right: 4px;
+}
+.s-tag {
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  background: var(--surface-sunken);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.s-plain { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.s-plain li { font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+.s-plain strong { color: var(--ink); font-weight: 620; }

@@ -1,0 +1,16 @@
+/* Added for the GitHub Pages copy only. */
+
+/* Who this is for, said before anything else. A reader who wanted the tool and landed
+   on an engineering record should be able to leave in one click rather than reading a
+   list of limitations and concluding the product is broken. */
+.ev-note {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--accent-wash);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}

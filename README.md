@@ -194,3 +194,12 @@ steading-vercel/
 
 Klip contoh di `public/demo/` dibuat sendiri dengan ffmpeg (`testsrc2` dan nada sinus).
 Tidak ada materi berhak cipta milik siapa pun di dalam repo ini.
+
+## Engineering record
+
+The measurements behind every figure on the site, the screenshots, the failure modes and
+the stated limits are kept at **https://bryankwandou.github.io/steading/**.
+
+It is written for reviewers rather than for people using Steading, which is why it is not
+linked from the product: a list of limits read out of context is misleading to someone who
+only wanted to save a photo.
