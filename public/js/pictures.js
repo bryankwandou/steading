@@ -58,6 +58,16 @@ if (el.form) {
           sibling.setAttribute('aria-checked', String(sibling === button));
         }
         if (el.formatNote) el.formatNote.textContent = FORMAT_NOTES[value];
+        // The button has to say which of the two it will hand back. It read "Save pictures
+        // as PDF" above a chosen zip, which is the control describing the wrong outcome.
+        if (el.submit) el.submit.textContent = value === 'zip' ? 'Save original pictures' : 'Save pictures as PDF';
+        
+        // And the previous answer goes. Left on screen it belongs to the format that was
+        // chosen before, so changing the choice appeared to invert the result -- reported
+        // from two screenshots where the selection and the file plainly disagreed.
+        el.result.hidden = true;
+        el.result.textContent = '';
+        el.status.hidden = true;
       });
     }
   }
@@ -78,12 +88,41 @@ if (el.form) {
     el.status.setAttribute('role', tone === 'error' ? 'alert' : 'status');
   };
 
+  /**
+   * The label the button rests at, which is not a constant: it names the file the reader
+   * is about to get. Hard-coding it here was what put "Save pictures as PDF" back over a
+   * chosen zip after every submission, undoing what the segmented control had just set.
+   */
+  const idleLabel = () => (chosenFormat() === 'zip' ? 'Save original pictures' : 'Save pictures as PDF');
+
   const setBusy = (on, label) => {
     busy = on;
     el.submit.disabled = on;
     el.submit.dataset.busy = on ? '1' : '0';
     el.submit.textContent = label;
   };
+
+  /**
+ * Does this address point at a video rather than at photographs?
+ *
+ * Deliberately narrow: it only fires on the address shapes that are unambiguously a
+ * single video, so an Instagram post or a Facebook photo album is never mislabelled.
+ * A wrong guess here would replace one confusing message with a different one.
+ */
+function videoLikely(address) {
+  return [
+    /youtube\.com\/watch|youtu\.be\//i,
+    /facebook\.com\/watch|fb\.watch\//i,
+    /tiktok\.com\/@[^/]+\/video\//i,
+    /vimeo\.com\/\d/i,
+    /dailymotion\.com\/video\//i,
+    /twitch\.tv\/videos\//i,
+    /bilibili\.com\/video\//i,
+    /soundcloud\.com\/[^/]+\/[^/]/i,
+    /rumble\.com\/v/i,
+    /odysee\.com\/@/i,
+  ].some((p) => p.test(address));
+}
 
   el.form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -135,7 +174,11 @@ if (el.form) {
         } catch { /* a non-JSON body means the platform failed, not the handler */ }
 
         const known = {
-          no_image: 'No pictures were found on that page. Try a post rather than a profile or a feed.',
+          no_image: videoLikely(url)
+            ? 'That looks like a video link. This page saves photographs; video and audio '
+              + 'are handled by the app on your own machine, where they run fastest and stay '
+              + 'off anyone else\'s server.'
+            : 'No pictures were found on that page. Try a post rather than a profile or a feed.',
           bad_url: 'That address cannot be reached. Private and local addresses are refused on purpose.',
           bad_request: 'That request was not understood. Check the link and try once more.',
         };
@@ -201,7 +244,7 @@ if (el.form) {
       // connection dropped rather than anything being wrong with the request.
       say('The connection dropped before the file arrived. Check your signal and try again.', 'error');
     } finally {
-      setBusy(false, 'Save pictures as PDF');
+      setBusy(false, idleLabel());
     }
   });
 
