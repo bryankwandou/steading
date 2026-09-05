@@ -30,6 +30,7 @@ are embedded verbatim through DCTDecode, so no pixel is decoded and no library h
 installed, audited, or kept up to date.
 """
 
+import hashlib
 import io
 import zipfile
 import json
@@ -209,21 +210,86 @@ def _from_jsonld(html):
     return out
 
 
+def _largest_in_srcset(srcset):
+    """The biggest candidate a srcset offers, by its own descriptors.
+
+    Reading the last entry was the previous approach and it is not sound: the
+    specification does not require the list to be ordered, and pages that list the
+    smallest last handed back a thumbnail every time. The descriptors are the only
+    statement of size the attribute actually makes, so they are what gets compared --
+    "1600w" against "400w", or "3x" against "1x", with an entry carrying neither treated
+    as the smallest thing on offer.
+    """
+    best, best_weight = None, -1.0
+    for part in srcset.split(","):
+        bits = part.strip().split()
+        if not bits:
+            continue
+        url = bits[0]
+        weight = 0.0
+        for token in bits[1:]:
+            match = re.match(r"^(\d+(?:\.\d+)?)([wx])$", token)
+            if match:
+                value = float(match.group(1))
+                # A density is a multiplier rather than a width, so it is scaled into the
+                # same range instead of being compared against pixel counts directly.
+                weight = value if match.group(2) == "w" else value * 1000.0
+        if weight > best_weight:
+            best, best_weight = url, weight
+    return best
+
+
+# Address shapes that name a resized copy, paired with what the full-size copy is called.
+# Only rules where the mapping is unambiguous: a wrong guess here fetches a 404 and loses
+# a picture that would otherwise have arrived, so a thumbnail is worth more than a
+# hopeful rewrite. Both forms are kept and tried in order, never swapped blindly.
+_UPGRADES = (
+    (re.compile(r"/thumb/(.+)/\d+px-[^/]+$"), r"/\1"),          # MediaWiki thumbnails
+    (re.compile(r"(_)(?:thumb|small|tn|s)(\.(?:jpe?g|png|webp))$", re.I), r"\2"),
+    (re.compile(r"([?&])(?:w|width|h|height|size|resize)=\d+", re.I), r"\1"),
+)
+
+
+def _upgrade(url):
+    """A larger form of this address, when one is named unambiguously, else None."""
+    for pattern, replacement in _UPGRADES:
+        upgraded = pattern.sub(replacement, url)
+        if upgraded != url:
+            # Removing a query parameter leaves the separators behind it dangling, so
+            # "?w=200&x=1" becomes "?&x=1" without this.
+            upgraded = re.sub(r"[?&]{2,}", "?", upgraded).replace("?&", "?")
+            return upgraded.rstrip("?&")
+    return None
+
+
 def _from_img(html):
+    """Picture addresses from the markup, preferring the largest copy each tag offers."""
     out = []
     for tag in re.findall(r"<img\b[^>]*>", html, re.I):
-        # srcset first: its last entry is usually the largest copy on offer.
-        srcset = _attr(tag, "srcset")
+        candidates = []
+
+        srcset = _attr(tag, "srcset") or _attr(tag, "data-srcset")
         if srcset:
-            parts = [p.strip().split()[0] for p in srcset.split(",") if p.strip()]
-            if parts:
-                out.append(parts[-1])
-                continue
-        # Lazy-loading pages leave the real address in a data- attribute and a
-        # placeholder in src, so those are worth more than src itself.
-        src = _attr(tag, "data-src") or _attr(tag, "data-original") or _attr(tag, "src")
-        if src:
-            out.append(src)
+            largest = _largest_in_srcset(srcset)
+            if largest:
+                candidates.append(largest)
+
+        # A lazy-loading page leaves the real address in a data- attribute and a
+        # placeholder in src, so those outrank src itself.
+        for name in ("data-full", "data-large", "data-original", "data-src", "src"):
+            value = _attr(tag, name)
+            if value:
+                candidates.append(value)
+
+        for candidate in candidates:
+            # The upgraded form goes first and the original stays behind it, so a rewrite
+            # that turns out to be wrong costs an extra request rather than the picture.
+            bigger = _upgrade(candidate)
+            if bigger:
+                out.append(bigger)
+            out.append(candidate)
+            break
+
     return out
 
 
@@ -562,6 +628,11 @@ class handler(BaseHTTPRequestHandler):
             return self._json(422, {"code": "no_image"})
 
         pages, kept_urls, kinds, total, truncated = [], [], [], 0, False
+        # Identical pictures are dropped by their content, not by their address.
+        # Upgrading a thumbnail address to its full-size form deliberately keeps the
+        # original behind it, so the same photograph can arrive twice under two names --
+        # which a reader counting what they got will read as the tool duplicating things.
+        seen_digests = set()
         for url in urls:
             if len(pages) >= MAX_PAGES:
                 truncated = True
@@ -588,6 +659,11 @@ class handler(BaseHTTPRequestHandler):
             if total + len(data) > MAX_TOTAL_BYTES:
                 truncated = True
                 break
+
+            digest = hashlib.sha256(data).digest()
+            if digest in seen_digests:
+                continue
+            seen_digests.add(digest)
 
             pages.append(data)
             kept_urls.append(url)
