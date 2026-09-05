@@ -40,8 +40,10 @@ const el = {
  */
 const FORMAT_NOTES = {
   pdf: 'Every picture bound into a single document, in the order the page used.',
-  zip: 'A zip of the pictures exactly as they were published — jpg, png or webp, '
+  zip: 'A zip of the pictures exactly as they were published \u2014 jpg, png or webp, '
      + 'untouched. This keeps pictures that a PDF has to leave out.',
+  files: 'Each picture listed on its own, with its own save button. Nothing to unpack, '
+       + 'and you can take only the ones you want.',
 };
 
 if (el.form) {
@@ -60,7 +62,7 @@ if (el.form) {
         if (el.formatNote) el.formatNote.textContent = FORMAT_NOTES[value];
         // The button has to say which of the two it will hand back. It read "Save pictures
         // as PDF" above a chosen zip, which is the control describing the wrong outcome.
-        if (el.submit) el.submit.textContent = value === 'zip' ? 'Save original pictures' : 'Save pictures as PDF';
+        if (el.submit) el.submit.textContent = idleLabel();
         
         // And the previous answer goes. Left on screen it belongs to the format that was
         // chosen before, so changing the choice appeared to invert the result -- reported
@@ -72,7 +74,10 @@ if (el.form) {
     }
   }
 
-  const chosenFormat = () => (el.format?.dataset.active === 'zip' ? 'zip' : 'pdf');
+  const chosenFormat = () => {
+    const v = el.format?.dataset.active;
+    return v === 'zip' || v === 'files' ? v : 'pdf';
+  };
 
   /**
    * Say what is happening, in one place.
@@ -93,7 +98,10 @@ if (el.form) {
    * is about to get. Hard-coding it here was what put "Save pictures as PDF" back over a
    * chosen zip after every submission, undoing what the segmented control had just set.
    */
-  const idleLabel = () => (chosenFormat() === 'zip' ? 'Save original pictures' : 'Save pictures as PDF');
+  const idleLabel = () => ({
+    zip: 'Save original pictures',
+    files: 'List the pictures',
+  }[chosenFormat()] || 'Save pictures as PDF');
 
   const setBusy = (on, label) => {
     busy = on;
@@ -183,6 +191,46 @@ function videoLikely(address) {
           bad_request: 'That request was not understood. Check the link and try once more.',
         };
         say(known[code] || 'The server could not finish that one. Try again in a moment.', 'error');
+        return;
+      }
+
+      // The one-at-a-time answer is JSON rather than a file, so it is rendered here
+      // instead of being handed to the browser as a download.
+      if (chosenFormat() === 'files') {
+        const payload = await res.json();
+        const list = payload.pictures || [];
+        if (!list.length) { say('No pictures were found on that page.', 'error'); return; }
+
+        const grid = document.createElement('div');
+        grid.className = 'pic-grid';
+        for (const picture of list) {
+          const row = document.createElement('div');
+          row.className = 'pic-item';
+
+          const thumb = document.createElement('img');
+          thumb.src = picture.data;
+          thumb.alt = '';
+          thumb.loading = 'lazy';
+          row.append(thumb);
+
+          const save = document.createElement('a');
+          save.className = 'btn btn-quiet pic-save';
+          save.href = picture.data;
+          save.download = picture.name;
+          save.textContent = 'Save';
+          // The filename and size sit beside the button rather than inside it, so the
+          // control stays one word wide on a phone.
+          const meta = document.createElement('span');
+          meta.className = 'pic-meta';
+          meta.textContent = `${picture.name} · ${Math.round(picture.bytes / 1024)} KB`;
+
+          row.append(meta, save);
+          grid.append(row);
+        }
+
+        el.result.replaceChildren(grid);
+        el.result.hidden = false;
+        say(`${list.length} picture${list.length === 1 ? '' : 's'}, each with its own save button${payload.truncated ? ' — the first ${list.length} of a longer post' : ''}.`, 'ok');
         return;
       }
 

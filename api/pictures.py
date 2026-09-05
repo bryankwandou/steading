@@ -353,6 +353,22 @@ def images_to_zip(images, kinds, stem):
     return buffer.getvalue()
 
 
+def _source_of(kept_urls):
+    """Where the pictures that survived actually came from.
+
+    Judged on what was kept rather than on what was offered: Instagram supplies 28
+    addresses from its own markup, every one of them fails, and the single usable picture
+    comes from oEmbed. Reporting "page" there would be true of the candidates and false of
+    the result.
+    """
+    from_oembed = sum(1 for u in kept_urls if u in _OEMBED_URLS)
+    if not kept_urls:
+        return "none"
+    if from_oembed == len(kept_urls):
+        return "oembed"
+    return "mixed" if from_oembed else "page"
+
+
 def collect(page_url, limit):
     """Candidate picture URLs from a page, in the order the page most likely meant."""
     # A page that cannot be read is not the end of the attempt. This used to return here,
@@ -535,7 +551,7 @@ class handler(BaseHTTPRequestHandler):
         except (ValueError, UnicodeDecodeError):
             return self._json(400, {"code": "bad_request"})
 
-        if want not in ("pdf", "zip"):
+        if want not in ("pdf", "zip", "files"):
             return self._json(400, {"code": "bad_request"})
 
         if not _fetchable(page_url):
@@ -583,6 +599,31 @@ class handler(BaseHTTPRequestHandler):
 
         name = (urllib.parse.urlparse(page_url).path.rstrip("/").split("/") or ["post"])[-1]
         name = re.sub(r"[^A-Za-z0-9._-]", "_", urllib.parse.unquote(name))[:60] or "post"
+
+        # One picture at a time, for a reader who wants three of the fourteen rather than
+        # a bundle of all of them. Returned as JSON with each picture inline, so the page
+        # can offer a save button per row without asking the server for them a second
+        # time -- and so nothing has to be unpacked from an archive by hand.
+        #
+        # Inline rather than by address because the addresses are on the origin site,
+        # and handing those back would send the reader's browser to fetch from a server
+        # this page exists to keep them away from.
+        if want == "files":
+            import base64
+            files = []
+            for index, (data, kind) in enumerate(zip(pages, kinds), start=1):
+                mime = {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}[kind]
+                files.append({
+                    "name": "%s-%0*d.%s" % (name, max(2, len(str(len(pages)))), index, kind),
+                    "type": mime,
+                    "bytes": len(data),
+                    "data": "data:%s;base64,%s" % (mime, base64.b64encode(data).decode("ascii")),
+                })
+            return self._json(200, {
+                "pictures": files,
+                "truncated": truncated,
+                "source": _source_of(kept_urls),
+            })
 
         if want == "zip":
             body = images_to_zip(pages, kinds, name)
