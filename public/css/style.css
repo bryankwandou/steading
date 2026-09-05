@@ -89,6 +89,21 @@
    shared token lists byte-identical to the local build. */
 :root { --wide: 1120px; }
 
+/* The shell grows on a large screen, instead of sitting in the middle of one.
+ *
+ * 1120px was a flat cap at every width above it, so a 2133px viewport put the whole page
+ * in the middle 1120 and left roughly 500px of empty ground on each side. Measured at
+ * 1920, 2133, 2400 and 2844: the headline stayed 496px wide and the hero scene stayed
+ * 472px at all four, because neither had any room to grow into. That is the emptiness
+ * that keeps being reported, and it is a layout fault rather than a matter of taste.
+ *
+ * Raised in two steps rather than set free. A measure that grows without limit turns
+ * body text into lines nobody can track back to the left edge, so the shell widens while
+ * the prose inside it stays held to its own max-width.
+ */
+@media (min-width: 1500px) { :root { --wide: 1280px; } }
+@media (min-width: 1900px) { :root { --wide: 1400px; } }
+
 /* Only while the toggle is crossfading. Leaving colour transitions on permanently makes
    every hover feel 200 ms late, which is what a "laggy" theme switch usually is. */
 .theme-shifting,

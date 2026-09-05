@@ -225,6 +225,10 @@
 .deck-bar .btn { min-width: var(--tap); min-height: var(--tap); }
 .deck-count { margin: 0; font-size: 14px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 .deck-hint { margin-left: auto; font-size: 12.5px; color: var(--ink-faint); }
+.deck-bar .theme-btn { margin-left: 8px; flex: none; }
+/* With the hint hidden on narrow screens the toggle would slide left against the
+   counter, so it takes over the job of pushing itself to the end. */
+@media (max-width: 560px) { .deck-bar .theme-btn { margin-left: auto; } }
 
 @media (max-width: 560px) { .deck-hint { display: none; } }
 

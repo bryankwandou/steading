@@ -109,8 +109,22 @@
   .hero-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
 }
 
+/* Above laptop widths the headline and the scene are given the extra room the shell now
+   has. Everything at or below 1366px is deliberately untouched: those sizes measure clean
+   already, and widening them would trade a real fix for a new fault. */
+@media (min-width: 1500px) {
+  .hero-h1 { font-size: clamp(62px, 4.6vw, 76px); }
+  .hero-lede { max-width: 52ch; font-size: 20px; }
+}
+
+@media (min-width: 1900px) {
+  .hero-h1 { font-size: clamp(70px, 4.2vw, 84px); }
+}
+
 .hero-h1 {
   margin: 0 0 18px;
+  /* The ceiling rises with the shell. Capped at 62px, the headline stopped growing at
+     roughly 1030px of viewport and looked stranded on anything larger. */
   font-size: clamp(34px, 6vw, 62px);
   line-height: 1.04;
   letter-spacing: -0.035em;

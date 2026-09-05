@@ -9,6 +9,26 @@
  * and this one is meant to be talked over.
  */
 
+import { initTheme, toggleTheme, resolvedTheme, onThemeChange } from './theme.js';
+
+/**
+ * The theme control.
+ *
+ * theme.js only exports its functions -- every page that carries a toggle imports them
+ * and binds the click itself. The deck loaded the module and bound nothing, so the button
+ * sat there looking like a control and did nothing when pressed, on the page a reviewer
+ * is most likely to open. Reported as "the light mode toggle cannot be shown to work",
+ * which was exactly right.
+ */
+const themeBtn = document.getElementById('theme');
+if (themeBtn) {
+  themeBtn.addEventListener('click', toggleTheme);
+  onThemeChange(() => {
+    themeBtn.setAttribute('title', resolvedTheme() === 'dark' ? 'Light' : 'Dark');
+  });
+}
+initTheme();
+
 const slides = [...document.querySelectorAll('.slide')];
 const count = document.getElementById('deck-count');
 

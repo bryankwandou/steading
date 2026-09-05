@@ -242,6 +242,19 @@
   <p class="deck-count" id="deck-count" role="status">1 / 9</p>
   <button type="button" id="deck-next" class="btn btn-quiet" aria-label="Next slide">&rsaquo;</button>
   <span class="deck-hint">Arrow keys, or space</span>
+
+  <!-- The deck has no header, so it had no theme control at all: every other page carries
+       one and this one shipped without it, which made the light/dark claim unprovable on
+       the page a panel is most likely to open. -->
+  <button type="button" id="theme" class="btn-icon theme-btn" aria-label="Theme">
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.2"/>
+      <path d="M12 2.6v2.2M12 19.2v2.2M4.36 4.36 5.9 5.9M18.1 18.1l1.54 1.54M2.6 12h2.2M19.2 12h2.2M4.36 19.64 5.9 18.1M18.1 5.9l1.54-1.54"/>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20.2 14.2A8.3 8.3 0 0 1 9.8 3.8a8.3 8.3 0 1 0 10.4 10.4Z"/>
+    </svg>
+  </button>
 </div>
 
 <script type="module" src="/js/deck.js"></script>
