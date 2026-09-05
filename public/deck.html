@@ -176,7 +176,7 @@
         <ul class="slide-list warn">
           <li><strong>Instagram carousels.</strong> A fourteen-photo post returns its cover. The rest needs a signed-in session, and this program never asks for an account.</li>
           <li><strong>Video and audio on the website.</strong> Merging streams needs ffmpeg and a seekable disk, which a hosted function has neither of. Those run on your machine.</li>
-          <li><strong>Three sites were dropped.</strong> Douyin needs cookies, Rumble returned 403 to every probe, Vidio's segments 404. The list says 22, not 25.</li>
+          <li><strong>Two sites were dropped, and six are unchecked.</strong> Douyin needs cookies and Vidio's manifest 404s, so neither is listed. Of the 23 that are, 17 were fetched with a real link and 6 are listed but not yet tried &mdash; the page says which is which.</li>
         </ul>
         <div>
           <p class="slide-note">
@@ -203,7 +203,7 @@
         <div class="metric"><span class="metric-n">1,752</span><span class="metric-l">sites, read from the installed binary rather than typed</span></div>
         <div class="metric"><span class="metric-n">12</span><span class="metric-l">formats across video, audio, photo and PDF</span></div>
         <div class="metric"><span class="metric-n">24</span><span class="metric-l">languages, right-to-left included</span></div>
-        <div class="metric"><span class="metric-n">22</span><span class="metric-l">platforms checked against a live address</span></div>
+        <div class="metric"><span class="metric-n">17</span><span class="metric-l">platforms fetched with a real link, 6 more listed but not yet tried</span></div>
       </div>
       <p class="slide-note">
         Zero dependencies is also why it installs on a phone: <code>npm install</code> in
