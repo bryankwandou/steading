@@ -456,10 +456,30 @@ async function checkServer() {
  * send people to the setup page rather than hand them a file their system will not run,
  * so on those systems the button says so and goes there instead.
  */
+/**
+ * A touch device that calls itself Linux is almost always Android.
+ *
+ * Android's user agent contains "Linux", and a tablet with "desktop site" switched on
+ * drops the word "Android" from it entirely -- so the plain string test fell through to
+ * the Linux row and handed an Android tablet a page of apt/dnf/pacman instructions and a
+ * terminal command it has no terminal for. Reported from exactly that device.
+ *
+ * X11 is the tell in the other direction: a real desktop Linux session says so, and no
+ * Android build does. A touchscreen laptop running Linux without X11 would be guessed
+ * wrong here, but the setup page keeps all four systems as tabs, so that costs one tap --
+ * while the current fault costs an Android reader the whole route.
+ */
+function looksLikeAndroid(ua, platform) {
+  if (/Android/i.test(ua)) return true;
+  const both = platform + ua;
+  const touch = (navigator.maxTouchPoints || 0) > 0;
+  return touch && /Linux/i.test(both) && !/X11|CrOS/i.test(both);
+}
+
 const SYSTEMS = [
   { id: 'windows', label: 'Windows', file: '/Steading.cmd', test: (ua, p) => /Win/i.test(p) || /Windows/i.test(ua) },
   { id: 'mac', label: 'macOS', file: null, test: (ua, p) => /Mac|iPhone|iPad|iPod/i.test(p + ua) },
-  { id: 'android', label: 'Android', file: null, test: (ua) => /Android/i.test(ua) },
+  { id: 'android', label: 'Android', file: null, test: (ua, p) => looksLikeAndroid(ua, p) },
   { id: 'linux', label: 'Linux', file: null, test: (ua, p) => /Linux|X11|CrOS/i.test(p + ua) },
 ];
 

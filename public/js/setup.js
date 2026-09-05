@@ -68,7 +68,13 @@ function detectOs() {
   const ua = navigator.userAgent;
   const platform = navigator.userAgentData?.platform || navigator.platform || '';
 
+  // Android first, and by more than the word alone. A tablet with "desktop site" on drops
+  // "Android" from its user agent while keeping "Linux", which sent an Android reader to
+  // the apt/dnf/pacman tab and a terminal command they have no terminal for. X11 is what a
+  // real desktop Linux session says and no Android build does.
+  const touch = (navigator.maxTouchPoints || 0) > 0;
   if (/Android/i.test(ua)) return 'android';
+  if (touch && /Linux/i.test(platform + ua) && !/X11|CrOS/i.test(platform + ua)) return 'android';
   // iOS cannot run this at all; macOS is the closest useful thing to offer.
   if (/Mac|iPhone|iPad|iPod/i.test(platform + ua)) return 'mac';
   if (/Win/i.test(platform) || /Windows/i.test(ua)) return 'windows';
