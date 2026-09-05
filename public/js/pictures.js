@@ -89,15 +89,28 @@ if (el.form) {
     event.preventDefault();
     if (busy) return;
 
-    const url = el.input.value.trim();
+    let url = el.input.value.trim();
     if (!url) {
       say('Paste a link first.', 'error');
       el.input.focus();
       return;
     }
-    // Checked here as well as on the server, so an obvious mistake costs no round trip.
+    // Almost nobody types the scheme. Copying an address out of a phone browser, off a
+    // page, or from a message all produce "youtube.com/watch?v=...", and this refused
+    // every one of them with a lecture about starting with http.
+    //
+    // A reviewer pasted exactly that and was told it was not a web address, which reads
+    // as the tool being broken rather than as the tool being fussy. The scheme is not
+    // information the reader has to supply: there is one sensible answer, so supply it.
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) {
+      url = 'https://' + url;
+      el.input.value = url;   // show what will actually be fetched
+    }
+
+    // Still checked before the round trip, but only for what is genuinely not an
+    // address: a sentence, a bare word, a filename.
     if (!/^https?:\/\/[^\s.]+\.[^\s]{2,}$/i.test(url)) {
-      say('That does not look like a web address. It should start with http.', 'error');
+      say('That does not look like a web address.', 'error');
       el.input.focus();
       return;
     }
